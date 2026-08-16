@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
+import { formatSeasonYear } from "@/lib/format-season";
 import {
   updateSeason,
   addSeasonTeam,
@@ -42,7 +43,9 @@ export default async function AdminSeasonPage({
         >
           {leagueConfig.name}
         </p>
-        <h1 className="font-display mt-1 text-2xl font-bold">{season.year} season</h1>
+        <h1 className="font-display mt-1 text-2xl font-bold">
+          {formatSeasonYear(season.year)} season
+        </h1>
       </div>
 
       <section className="border-bk-border bg-bk-surface mt-6 rounded-lg border p-5">

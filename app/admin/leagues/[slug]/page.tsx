@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
+import { formatSeasonYear } from "@/lib/format-season";
 
 export default async function AdminLeagueSeasonsPage({
   params,
@@ -50,7 +51,7 @@ export default async function AdminLeagueSeasonsPage({
               href={`/admin/leagues/${slug}/seasons/${season.id}`}
               className="hover:bg-bk-surface-raised flex items-center justify-between p-4"
             >
-              <span className="font-display font-semibold">{season.year}</span>
+              <span className="font-display font-semibold">{formatSeasonYear(season.year)}</span>
               <span className="text-bk-text-secondary text-xs tracking-wide uppercase">
                 {season.status}
               </span>

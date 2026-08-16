@@ -3,6 +3,7 @@ import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 import { requireUser } from "@/lib/require-user";
 import { prisma } from "@/lib/prisma";
 import { getAge } from "@/lib/player-age";
+import { formatSeasonYear } from "@/lib/format-season";
 import { CountdownBanner } from "@/components/countdown-banner";
 import { PredictionBoard, type PredictionTeam } from "@/components/prediction-board";
 import { AwardPicks, type AwardSelections } from "@/components/award-picks";
@@ -141,7 +142,7 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
         <p
           className={`font-display text-xs font-semibold tracking-widest uppercase ${accent.text}`}
         >
-          {leagueConfig.name} · {season.year}
+          {leagueConfig.name} · {formatSeasonYear(season.year)}
         </p>
         <h1 className="font-display mt-1 text-2xl font-bold">Predict the final table</h1>
       </div>

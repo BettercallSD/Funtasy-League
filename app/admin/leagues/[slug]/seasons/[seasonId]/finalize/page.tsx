@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
 import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
+import { formatSeasonYear } from "@/lib/format-season";
 import { finalizeSeason } from "@/lib/actions/admin-actions";
 import { AwardCategory } from "@/lib/generated/prisma/enums";
 
@@ -66,7 +67,7 @@ export default async function FinalizeSeasonPage({
         <p
           className={`font-display text-xs font-semibold tracking-widest uppercase ${accent.text}`}
         >
-          {leagueConfig.name} · {season.year}
+          {leagueConfig.name} · {formatSeasonYear(season.year)}
         </p>
         <h1 className="font-display mt-1 text-2xl font-bold">Finalize season</h1>
       </div>

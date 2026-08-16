@@ -2,10 +2,12 @@ function Field({
   label,
   name,
   defaultValue,
+  hint,
 }: {
   label: string;
   name: string;
   defaultValue?: number;
+  hint?: string;
 }) {
   return (
     <div>
@@ -21,6 +23,7 @@ function Field({
         min={0}
         className="border-bk-border bg-bk-bg mt-1 w-full rounded-md border px-3 py-2 text-sm"
       />
+      {hint && <p className="text-bk-text-muted mt-1 text-xs">{hint}</p>}
     </div>
   );
 }
@@ -46,7 +49,12 @@ export function SeasonFields({
 
   return (
     <div className="space-y-4">
-      <Field label="Year" name="year" defaultValue={defaultValues?.year} />
+      <Field
+        label="Starting year"
+        name="year"
+        defaultValue={defaultValues?.year}
+        hint="Just the year the season kicks off in — e.g. enter 2026 for the 2026/27 season. Shown everywhere as 2026/27 automatically."
+      />
       <Field label="Number of teams" name="teamCount" defaultValue={defaultValues?.teamCount} />
       <Field
         label="Direct relegation spots"
