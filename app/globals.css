@@ -1,26 +1,59 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base surfaces — dark charcoal/navy, not pure black */
+  --bk-bg: #0a0e14;
+  --bk-surface: #10151d;
+  --bk-surface-raised: #161c26;
+  --bk-border: #232b38;
+  --bk-border-strong: #2f3949;
+
+  /* Text */
+  --bk-text: #f1f5f9;
+  --bk-text-secondary: #94a3b8;
+  --bk-text-muted: #64748b;
+
+  /* Per-league accent colors, adapted from each competition's real branding
+     to sit well on a dark background rather than raw saturated web colors. */
+  --bk-league-premier-league: #7c5cfc;
+  --bk-league-la-liga: #ff6b4a;
+  --bk-league-serie-a: #22c58b;
+  --bk-league-bundesliga: #e5484d;
+  --bk-league-ligue-1: #3e7bfa;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-bk-bg: var(--bk-bg);
+  --color-bk-surface: var(--bk-surface);
+  --color-bk-surface-raised: var(--bk-surface-raised);
+  --color-bk-border: var(--bk-border);
+  --color-bk-border-strong: var(--bk-border-strong);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-bk-text: var(--bk-text);
+  --color-bk-text-secondary: var(--bk-text-secondary);
+  --color-bk-text-muted: var(--bk-text-muted);
+
+  --color-bk-premier-league: var(--bk-league-premier-league);
+  --color-bk-la-liga: var(--bk-league-la-liga);
+  --color-bk-serie-a: var(--bk-league-serie-a);
+  --color-bk-bundesliga: var(--bk-league-bundesliga);
+  --color-bk-ligue-1: var(--bk-league-ligue-1);
+
+  --font-display: var(--font-barlow-condensed);
+  --font-sans: var(--font-inter);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bk-bg);
+  color: var(--bk-text);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Condensed grotesk for anything data-dense: tables, standings, scores. */
+.font-display {
+  font-family: var(--font-display), Arial, Helvetica, sans-serif;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
