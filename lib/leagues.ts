@@ -10,6 +10,8 @@ export interface LeagueConfig {
   shortName: string;
   /** Tailwind color token defined in app/globals.css, e.g. "bk-premier-league" */
   accentToken: string;
+  /** Same color as accentToken, as a raw hex — mirrors app/globals.css, used to seed League.accentColor */
+  accentHex: string;
 }
 
 export const LEAGUES: LeagueConfig[] = [
@@ -18,30 +20,35 @@ export const LEAGUES: LeagueConfig[] = [
     name: "Premier League",
     shortName: "PL",
     accentToken: "bk-premier-league",
+    accentHex: "#7c5cfc",
   },
   {
     slug: "la-liga",
     name: "La Liga",
     shortName: "La Liga",
     accentToken: "bk-la-liga",
+    accentHex: "#ff6b4a",
   },
   {
     slug: "serie-a",
     name: "Serie A",
     shortName: "Serie A",
     accentToken: "bk-serie-a",
+    accentHex: "#22c58b",
   },
   {
     slug: "bundesliga",
     name: "Bundesliga",
     shortName: "BL",
     accentToken: "bk-bundesliga",
+    accentHex: "#e5484d",
   },
   {
     slug: "ligue-1",
     name: "Ligue 1",
     shortName: "L1",
     accentToken: "bk-ligue-1",
+    accentHex: "#3e7bfa",
   },
 ];
 
