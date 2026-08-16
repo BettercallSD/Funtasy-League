@@ -189,6 +189,19 @@ export async function finalizeSeason(seasonId: string, leagueSlug: string, formD
     { category: AwardCategory.DISAPPOINTING_TEAM, teamId: values.disappointingTeamId },
   ].filter((entry) => entry.playerId || entry.teamId);
 
+  const awardPlayerIds = awardEntries
+    .map((entry) => entry.playerId)
+    .filter((id): id is string => Boolean(id));
+  if (awardPlayerIds.length > 0) {
+    const seasonTeamIds = season.seasonTeams.map((seasonTeam) => seasonTeam.teamId);
+    const validPlayerCount = await prisma.player.count({
+      where: { id: { in: awardPlayerIds }, currentTeamId: { in: seasonTeamIds } },
+    });
+    if (validPlayerCount !== new Set(awardPlayerIds).size) {
+      throw new Error("One of the selected award players isn't in this season's league.");
+    }
+  }
+
   await prisma.$transaction(async (tx) => {
     const seasonResult = await tx.seasonResult.upsert({
       where: { seasonId },

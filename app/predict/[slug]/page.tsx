@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 import { requireUser } from "@/lib/require-user";
 import { prisma } from "@/lib/prisma";
-import { getAge } from "@/lib/player-age";
 import { formatSeasonYear } from "@/lib/format-season";
+import { getPopularPlayerPicks } from "@/lib/popular-awards";
 import { CountdownBanner } from "@/components/countdown-banner";
 import { PredictionBoard, type PredictionTeam } from "@/components/prediction-board";
 import { AwardPicks, type AwardSelections } from "@/components/award-picks";
@@ -44,7 +44,7 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
     );
   }
 
-  const [prediction, popularPlayersRaw] = await Promise.all([
+  const [prediction, popular] = await Promise.all([
     prisma.prediction.findUnique({
       where: { userId_seasonId: { userId: session.user.id, seasonId: season.id } },
       include: {
@@ -52,11 +52,7 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
         awards: { include: { player: { include: { currentTeam: true } }, team: true } },
       },
     }),
-    prisma.player.findMany({
-      include: { currentTeam: true },
-      orderBy: { name: "asc" },
-      take: 30,
-    }),
+    getPopularPlayerPicks(season.id),
   ]);
 
   const teamsById = new Map(
@@ -89,22 +85,6 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
   } else if (seasonClosed) {
     readOnlyReason = "Predictions closed before you locked one in for this season.";
   }
-
-  const popularPlayers: PlayerOption[] = popularPlayersRaw.slice(0, 6).map((player) => ({
-    id: player.id,
-    name: player.name,
-    teamName: player.currentTeam?.name ?? null,
-    crestUrl: player.currentTeam?.crestUrl ?? null,
-  }));
-  const popularU23Players: PlayerOption[] = popularPlayersRaw
-    .filter((player) => getAge(player.dateOfBirth) < 23)
-    .slice(0, 6)
-    .map((player) => ({
-      id: player.id,
-      name: player.name,
-      teamName: player.currentTeam?.name ?? null,
-      crestUrl: player.currentTeam?.crestUrl ?? null,
-    }));
 
   const awardTeams: TeamOption[] = season.seasonTeams.map((seasonTeam) => ({
     id: seasonTeam.teamId,
@@ -163,8 +143,7 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
           <AwardPicks
             seasonId={season.id}
             teams={awardTeams}
-            popularPlayers={popularPlayers}
-            popularU23Players={popularU23Players}
+            popular={popular}
             selections={selections}
             disabled={readOnly}
           />

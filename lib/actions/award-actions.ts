@@ -58,6 +58,19 @@ export async function setAward(seasonId: string, category: AwardCategory, valueI
   if (PLAYER_CATEGORIES.has(values.category)) {
     const player = await prisma.player.findUnique({ where: { id: values.valueId } });
     if (!player) throw new Error("Player not found.");
+
+    // The player has to actually play for a team in this season's league —
+    // otherwise nothing stops picking, say, a La Liga player for a Premier
+    // League Golden Boot prediction.
+    const playsInThisSeason =
+      player.currentTeamId !== null &&
+      (await prisma.seasonTeam.findUnique({
+        where: { seasonId_teamId: { seasonId: values.seasonId, teamId: player.currentTeamId } },
+      })) !== null;
+    if (!playsInThisSeason) {
+      throw new Error("That player isn't in this season's league.");
+    }
+
     if (values.category === AwardCategory.EMERGING_PLAYER && getAge(player.dateOfBirth) >= 23) {
       throw new Error("Emerging Player must be under 23.");
     }

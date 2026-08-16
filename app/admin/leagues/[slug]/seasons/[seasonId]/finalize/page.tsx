@@ -5,6 +5,7 @@ import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 import { formatSeasonYear } from "@/lib/format-season";
 import { finalizeSeason } from "@/lib/actions/admin-actions";
 import { AwardCategory } from "@/lib/generated/prisma/enums";
+import { FinalTablePicker, type FinalTableTeam } from "@/components/admin/final-table-picker";
 
 const PLAYER_AWARDS = [
   { category: AwardCategory.GOLDEN_BOOT, label: "Golden Boot", field: "goldenBootPlayerId" },
@@ -40,18 +41,28 @@ export default async function FinalizeSeasonPage({
   const leagueConfig = getLeague(slug);
   if (!leagueConfig) notFound();
 
-  const [season, players] = await Promise.all([
-    prisma.season.findUnique({
-      where: { id: seasonId },
-      include: {
-        league: true,
-        seasonTeams: { include: { team: true }, orderBy: { team: { name: "asc" } } },
-        seasonResult: { include: { tableEntries: true, awards: true } },
-      },
-    }),
-    prisma.player.findMany({ orderBy: { name: "asc" }, take: 500 }),
-  ]);
+  const season = await prisma.season.findUnique({
+    where: { id: seasonId },
+    include: {
+      league: true,
+      seasonTeams: { include: { team: true }, orderBy: { team: { name: "asc" } } },
+      seasonResult: { include: { tableEntries: true, awards: true } },
+    },
+  });
   if (!season || season.league.slug !== slug) notFound();
+
+  // Only players at a club in this season, same as the predict-flow search —
+  // an admin shouldn't be able to award a PL season's Golden Boot to a
+  // La Liga player either.
+  const seasonTeamIds = season.seasonTeams.map((seasonTeam) => seasonTeam.teamId);
+  const players =
+    seasonTeamIds.length > 0
+      ? await prisma.player.findMany({
+          where: { currentTeamId: { in: seasonTeamIds } },
+          orderBy: { name: "asc" },
+          take: 500,
+        })
+      : [];
 
   const accent = LEAGUE_ACCENT_CLASSES[leagueConfig.slug];
   const action = finalizeSeason.bind(null, seasonId, slug);
@@ -60,6 +71,24 @@ export default async function FinalizeSeasonPage({
     season.seasonResult?.tableEntries.map((e) => [e.teamId, e.finalPosition]) ?? [],
   );
   const awardByCategory = new Map(season.seasonResult?.awards.map((a) => [a.category, a]) ?? []);
+
+  // Existing final positions (if this season was already finalized once)
+  // seed the initial drag order; otherwise fall back to the alphabetical
+  // order the teams were already queried in.
+  const initialFinalTable: FinalTableTeam[] = [...season.seasonTeams]
+    .sort((a, b) => {
+      const posA = positionByTeamId.get(a.teamId);
+      const posB = positionByTeamId.get(b.teamId);
+      if (posA !== undefined && posB !== undefined) return posA - posB;
+      if (posA !== undefined) return -1;
+      if (posB !== undefined) return 1;
+      return 0;
+    })
+    .map((seasonTeam) => ({
+      id: seasonTeam.teamId,
+      name: seasonTeam.team.name,
+      crestUrl: seasonTeam.team.crestUrl,
+    }));
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
@@ -84,22 +113,12 @@ export default async function FinalizeSeasonPage({
           <h2 className="font-display text-lg font-semibold">
             Final table ({season.seasonTeams.length} teams)
           </h2>
-          <ul className="divide-bk-border border-bk-border mt-3 divide-y rounded-lg border">
-            {season.seasonTeams.map((seasonTeam) => (
-              <li key={seasonTeam.id} className="flex items-center justify-between gap-3 p-3">
-                <span className="text-sm">{seasonTeam.team.name}</span>
-                <input
-                  type="number"
-                  name={`position_${seasonTeam.teamId}`}
-                  min={1}
-                  max={season.seasonTeams.length}
-                  required
-                  defaultValue={positionByTeamId.get(seasonTeam.teamId)}
-                  className="border-bk-border bg-bk-bg w-20 rounded-md border px-2 py-1 text-right text-sm tabular-nums"
-                />
-              </li>
-            ))}
-          </ul>
+          <p className="text-bk-text-secondary mt-1 text-sm">
+            Drag teams into their actual final order.
+          </p>
+          <div className="mt-3">
+            <FinalTablePicker teams={initialFinalTable} />
+          </div>
         </section>
 
         <section>

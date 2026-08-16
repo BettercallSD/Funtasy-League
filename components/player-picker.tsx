@@ -31,6 +31,7 @@ export function PlayerPicker({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PlayerOption[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [current, setCurrent] = useState(selected);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +43,11 @@ export function PlayerPicker({
     const controller = new AbortController();
     const timeout = setTimeout(() => {
       setIsSearching(true);
-      const params = new URLSearchParams({ q: query, u23Only: String(Boolean(u23Only)) });
+      const params = new URLSearchParams({
+        q: query,
+        u23Only: String(Boolean(u23Only)),
+        seasonId,
+      });
       fetch(`/api/players/search?${params}`, { signal: controller.signal })
         .then((res) => res.json())
         .then((data: PlayerOption[]) => setResults(data))
@@ -55,7 +60,7 @@ export function PlayerPicker({
       controller.abort();
       clearTimeout(timeout);
     };
-  }, [query, u23Only]);
+  }, [query, u23Only, seasonId]);
 
   // Derived rather than cleared inside the effect — an empty query has no
   // results to show regardless of what the last fetch left in state.
@@ -103,29 +108,33 @@ export function PlayerPicker({
 
       {!disabled && !current && (
         <>
-          {popularPlayers.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {popularPlayers.map((player) => (
-                <button
-                  key={player.id}
-                  type="button"
-                  disabled={isPending}
-                  onClick={() => choose(player)}
-                  className="border-bk-border rounded-full border px-3 py-1 text-xs font-medium disabled:opacity-50"
-                >
-                  {player.name}
-                </button>
-              ))}
-            </div>
-          )}
-
           <input
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onFocus={() => setIsFocused(true)}
             placeholder="Search players…"
             className="border-bk-border bg-bk-bg mt-2 w-full rounded-md border px-3 py-2 text-sm"
           />
+
+          {isFocused && query.trim().length === 0 && popularPlayers.length > 0 && (
+            <div className="mt-2">
+              <p className="text-bk-text-muted text-xs">Popular picks among other predictors</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {popularPlayers.slice(0, 3).map((player) => (
+                  <button
+                    key={player.id}
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => choose(player)}
+                    className="border-bk-border rounded-full border px-3 py-1 text-xs font-medium disabled:opacity-50"
+                  >
+                    {player.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {isSearching && <p className="text-bk-text-secondary mt-1 text-xs">Searching…</p>}
 

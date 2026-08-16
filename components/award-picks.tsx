@@ -14,18 +14,26 @@ export interface AwardSelections {
   disappointingTeam?: TeamOption;
 }
 
+// Each category gets its own "popular picks" list — the popular Golden Boot
+// pick and the popular Young Player pick are unrelated, so sharing one list
+// across categories would be misleading.
+export interface PopularPlayerPicks {
+  goldenBoot: PlayerOption[];
+  mostAssists: PlayerOption[];
+  youngPlayer: PlayerOption[];
+  emergingPlayer: PlayerOption[];
+}
+
 export function AwardPicks({
   seasonId,
   teams,
-  popularPlayers,
-  popularU23Players,
+  popular,
   selections,
   disabled,
 }: {
   seasonId: string;
   teams: TeamOption[];
-  popularPlayers: PlayerOption[];
-  popularU23Players: PlayerOption[];
+  popular: PopularPlayerPicks;
   selections: AwardSelections;
   disabled: boolean;
 }) {
@@ -35,7 +43,7 @@ export function AwardPicks({
         seasonId={seasonId}
         category={AwardCategory.GOLDEN_BOOT}
         label="Golden Boot"
-        popularPlayers={popularPlayers}
+        popularPlayers={popular.goldenBoot}
         selected={selections.goldenBoot ?? null}
         disabled={disabled}
       />
@@ -43,7 +51,7 @@ export function AwardPicks({
         seasonId={seasonId}
         category={AwardCategory.MOST_ASSISTS}
         label="Most Assists"
-        popularPlayers={popularPlayers}
+        popularPlayers={popular.mostAssists}
         selected={selections.mostAssists ?? null}
         disabled={disabled}
       />
@@ -51,7 +59,7 @@ export function AwardPicks({
         seasonId={seasonId}
         category={AwardCategory.YOUNG_PLAYER}
         label="Young Player of the Season"
-        popularPlayers={popularPlayers}
+        popularPlayers={popular.youngPlayer}
         selected={selections.youngPlayer ?? null}
         disabled={disabled}
       />
@@ -60,7 +68,7 @@ export function AwardPicks({
         category={AwardCategory.EMERGING_PLAYER}
         label="Emerging Player (U23)"
         u23Only
-        popularPlayers={popularU23Players}
+        popularPlayers={popular.emergingPlayer}
         selected={selections.emergingPlayer ?? null}
         disabled={disabled}
       />
