@@ -54,10 +54,16 @@ model Season {
   year Int
 
   // Admin-configured per season — never hardcode these, formats change year to year.
-  teamCount                  Int
-  directRelegationCount      Int
-  playoffRelegationCount     Int
-  europeanQualificationSlots Int
+  // European slots are broken out per competition (not one vague "Europe"
+  // count) since UCL/Europa/Conference counts shift independently with UEFA
+  // coefficient rules; the sum of the three is the scoring engine's
+  // "top-bracket" slot count from CLAUDE.md's scoring table.
+  teamCount              Int
+  directRelegationCount  Int
+  playoffRelegationCount Int
+  championsLeagueSlots   Int
+  europaLeagueSlots      Int
+  conferenceLeagueSlots  Int
 
   predictionLockAt DateTime
   status           SeasonStatus @default(UPCOMING)

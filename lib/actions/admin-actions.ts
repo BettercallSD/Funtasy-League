@@ -35,7 +35,9 @@ export async function createSeason(leagueSlug: string, formData: FormData) {
     teamCount: formData.get("teamCount"),
     directRelegationCount: formData.get("directRelegationCount"),
     playoffRelegationCount: formData.get("playoffRelegationCount"),
-    europeanQualificationSlots: formData.get("europeanQualificationSlots"),
+    championsLeagueSlots: formData.get("championsLeagueSlots"),
+    europaLeagueSlots: formData.get("europaLeagueSlots"),
+    conferenceLeagueSlots: formData.get("conferenceLeagueSlots"),
     predictionLockAt: formData.get("predictionLockAt"),
   });
 
@@ -55,7 +57,9 @@ export async function updateSeason(seasonId: string, leagueSlug: string, formDat
     teamCount: formData.get("teamCount"),
     directRelegationCount: formData.get("directRelegationCount"),
     playoffRelegationCount: formData.get("playoffRelegationCount"),
-    europeanQualificationSlots: formData.get("europeanQualificationSlots"),
+    championsLeagueSlots: formData.get("championsLeagueSlots"),
+    europaLeagueSlots: formData.get("europaLeagueSlots"),
+    conferenceLeagueSlots: formData.get("conferenceLeagueSlots"),
     predictionLockAt: formData.get("predictionLockAt"),
   });
 

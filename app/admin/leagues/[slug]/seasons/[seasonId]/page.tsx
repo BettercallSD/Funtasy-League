@@ -57,7 +57,9 @@ export default async function AdminSeasonPage({
               teamCount: season.teamCount,
               directRelegationCount: season.directRelegationCount,
               playoffRelegationCount: season.playoffRelegationCount,
-              europeanQualificationSlots: season.europeanQualificationSlots,
+              championsLeagueSlots: season.championsLeagueSlots,
+              europaLeagueSlots: season.europaLeagueSlots,
+              conferenceLeagueSlots: season.conferenceLeagueSlots,
               predictionLockAt: season.predictionLockAt,
             }}
           />

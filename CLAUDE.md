@@ -54,10 +54,13 @@ the main thing that keeps this from feeling like generic template software.
 
 - `League` — id, name, slug, accentColor
 - `Season` — id, leagueId, year, teamCount, directRelegationCount, playoffRelegationCount,
-  europeanQualificationSlots, predictionLockAt, status. **All of these counts are admin-configured
-  per season, not hardcoded** — league formats and European slot counts genuinely change year to
-  year (e.g. Bundesliga/Ligue 1 relegate fewer teams than the other three, and European slot counts
-  shift with UEFA coefficient rules).
+  championsLeagueSlots, europaLeagueSlots, conferenceLeagueSlots, predictionLockAt, status.
+  **All of these counts are admin-configured per season, not hardcoded** — league formats and
+  European slot counts genuinely change year to year (e.g. Bundesliga/Ligue 1 relegate fewer teams
+  than the other three, and European slot counts shift with UEFA coefficient rules). European
+  qualification is entered per competition (Champions League / Europa League / Conference League)
+  rather than one combined count, since each shifts independently — the sum of the three is the
+  "top-bracket" N used in scoring below.
 - `Team`, `SeasonTeam` (which teams are in which league that season, promoted/relegated flags)
 - `Player` — for the award-category search/autocomplete, includes dateOfBirth (needed for the
   under-23 Emerging Player category) and current team
@@ -74,17 +77,17 @@ the main thing that keeps this from feeling like generic template software.
 
 ## Scoring rules (exactly this — keep it simple, this is final)
 
-| Prediction                                                                              | Points   |
-| --------------------------------------------------------------------------------------- | -------- |
-| Champion correct                                                                        | 25       |
-| Top-bracket team (any order, N = that season's `europeanQualificationSlots`)            | 10 each  |
-| Exact league position (any team, stacks with the above — e.g. exact champion = 25+5=30) | +5 bonus |
-| Relegated team (any order, counts direct + playoff relegation slots)                    | 15 each  |
-| Golden Boot (top scorer)                                                                | 20       |
-| Most assists                                                                            | 20       |
-| Young Player of the Season                                                              | 15       |
-| Surprise Team                                                                           | 10       |
-| Disappointing Team                                                                      | 10       |
+| Prediction                                                                                           | Points   |
+| ---------------------------------------------------------------------------------------------------- | -------- |
+| Champion correct                                                                                     | 25       |
+| Top-bracket team (any order, N = `championsLeagueSlots + europaLeagueSlots + conferenceLeagueSlots`) | 10 each  |
+| Exact league position (any team, stacks with the above — e.g. exact champion = 25+5=30)              | +5 bonus |
+| Relegated team (any order, counts direct + playoff relegation slots)                                 | 15 each  |
+| Golden Boot (top scorer)                                                                             | 20       |
+| Most assists                                                                                         | 20       |
+| Young Player of the Season                                                                           | 15       |
+| Surprise Team                                                                                        | 10       |
+| Disappointing Team                                                                                   | 10       |
 
 Tie-breaker for any leaderboard: whoever has the most "+5 exact position" bonuses wins the tie.
 If still tied, they're shown tied — no further tiebreak.

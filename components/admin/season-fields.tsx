@@ -39,7 +39,9 @@ export function SeasonFields({
     teamCount?: number;
     directRelegationCount?: number;
     playoffRelegationCount?: number;
-    europeanQualificationSlots?: number;
+    championsLeagueSlots?: number;
+    europaLeagueSlots?: number;
+    conferenceLeagueSlots?: number;
     predictionLockAt?: Date;
   };
 }) {
@@ -67,9 +69,19 @@ export function SeasonFields({
         defaultValue={defaultValues?.playoffRelegationCount}
       />
       <Field
-        label="European qualification slots"
-        name="europeanQualificationSlots"
-        defaultValue={defaultValues?.europeanQualificationSlots}
+        label="Champions League slots"
+        name="championsLeagueSlots"
+        defaultValue={defaultValues?.championsLeagueSlots}
+      />
+      <Field
+        label="Europa League slots"
+        name="europaLeagueSlots"
+        defaultValue={defaultValues?.europaLeagueSlots}
+      />
+      <Field
+        label="Conference League slots"
+        name="conferenceLeagueSlots"
+        defaultValue={defaultValues?.conferenceLeagueSlots}
       />
       <div>
         <label className="text-bk-text-secondary text-sm font-medium" htmlFor="predictionLockAt">

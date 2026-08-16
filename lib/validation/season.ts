@@ -2,24 +2,33 @@ import { z } from "zod";
 
 // League formats genuinely differ year to year (CLAUDE.md) — these counts
 // are always admin-entered, never hardcoded, but they still have to make
-// internal sense relative to each other.
+// internal sense relative to each other. European slots are broken out per
+// competition (UCL/Europa/Conference) rather than one vague "Europe" count,
+// since those shift independently with UEFA coefficient rules.
 export const seasonFormSchema = z
   .object({
     year: z.coerce.number().int().min(1900).max(2200),
     teamCount: z.coerce.number().int().min(2).max(64),
     directRelegationCount: z.coerce.number().int().min(0).max(64),
     playoffRelegationCount: z.coerce.number().int().min(0).max(64),
-    europeanQualificationSlots: z.coerce.number().int().min(0).max(64),
+    championsLeagueSlots: z.coerce.number().int().min(0).max(64),
+    europaLeagueSlots: z.coerce.number().int().min(0).max(64),
+    conferenceLeagueSlots: z.coerce.number().int().min(0).max(64),
     predictionLockAt: z.coerce.date(),
   })
   .refine((data) => data.directRelegationCount + data.playoffRelegationCount <= data.teamCount, {
     message: "Direct + playoff relegation counts can't exceed the team count",
     path: ["playoffRelegationCount"],
   })
-  .refine((data) => data.europeanQualificationSlots <= data.teamCount, {
-    message: "European qualification slots can't exceed the team count",
-    path: ["europeanQualificationSlots"],
-  });
+  .refine(
+    (data) =>
+      data.championsLeagueSlots + data.europaLeagueSlots + data.conferenceLeagueSlots <=
+      data.teamCount,
+    {
+      message: "Champions League + Europa + Conference slots can't exceed the team count",
+      path: ["conferenceLeagueSlots"],
+    },
+  );
 
 export type SeasonFormValues = z.infer<typeof seasonFormSchema>;
 
