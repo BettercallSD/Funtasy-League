@@ -32,7 +32,7 @@ export const seasonTeamFormSchema = z.object({
     .optional()
     .transform((v) => (v === "" ? undefined : v)),
   crestUrl: z
-    .union([z.url("Must be a valid URL"), z.literal("")])
+    .union([z.url({ protocol: /^https?$/, message: "Must be an http(s) URL" }), z.literal("")])
     .optional()
     .transform((v) => (v === "" ? undefined : v)),
   promoted: z.boolean().default(false),
