@@ -2,8 +2,12 @@ import { notFound } from "next/navigation";
 import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 import { requireUser } from "@/lib/require-user";
 import { prisma } from "@/lib/prisma";
+import { getAge } from "@/lib/player-age";
 import { CountdownBanner } from "@/components/countdown-banner";
 import { PredictionBoard, type PredictionTeam } from "@/components/prediction-board";
+import { AwardPicks, type AwardSelections } from "@/components/award-picks";
+import type { PlayerOption } from "@/components/player-picker";
+import type { TeamOption } from "@/components/team-picker";
 
 export default async function PredictPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -39,10 +43,20 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
     );
   }
 
-  const prediction = await prisma.prediction.findUnique({
-    where: { userId_seasonId: { userId: session.user.id, seasonId: season.id } },
-    include: { tableEntries: true },
-  });
+  const [prediction, popularPlayersRaw] = await Promise.all([
+    prisma.prediction.findUnique({
+      where: { userId_seasonId: { userId: session.user.id, seasonId: season.id } },
+      include: {
+        tableEntries: true,
+        awards: { include: { player: { include: { currentTeam: true } }, team: true } },
+      },
+    }),
+    prisma.player.findMany({
+      include: { currentTeam: true },
+      orderBy: { name: "asc" },
+      take: 30,
+    }),
+  ]);
 
   const teamsById = new Map(
     season.seasonTeams.map((seasonTeam) => [seasonTeam.teamId, seasonTeam.team]),
@@ -75,6 +89,52 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
     readOnlyReason = "Predictions closed before you locked one in for this season.";
   }
 
+  const popularPlayers: PlayerOption[] = popularPlayersRaw.slice(0, 6).map((player) => ({
+    id: player.id,
+    name: player.name,
+    teamName: player.currentTeam?.name ?? null,
+    crestUrl: player.currentTeam?.crestUrl ?? null,
+  }));
+  const popularU23Players: PlayerOption[] = popularPlayersRaw
+    .filter((player) => getAge(player.dateOfBirth) < 23)
+    .slice(0, 6)
+    .map((player) => ({
+      id: player.id,
+      name: player.name,
+      teamName: player.currentTeam?.name ?? null,
+      crestUrl: player.currentTeam?.crestUrl ?? null,
+    }));
+
+  const awardTeams: TeamOption[] = season.seasonTeams.map((seasonTeam) => ({
+    id: seasonTeam.teamId,
+    name: seasonTeam.team.name,
+    crestUrl: seasonTeam.team.crestUrl,
+  }));
+
+  const selections: AwardSelections = {};
+  for (const award of prediction?.awards ?? []) {
+    if (award.player) {
+      const option: PlayerOption = {
+        id: award.player.id,
+        name: award.player.name,
+        teamName: award.player.currentTeam?.name ?? null,
+        crestUrl: award.player.currentTeam?.crestUrl ?? null,
+      };
+      if (award.category === "GOLDEN_BOOT") selections.goldenBoot = option;
+      else if (award.category === "MOST_ASSISTS") selections.mostAssists = option;
+      else if (award.category === "YOUNG_PLAYER") selections.youngPlayer = option;
+      else if (award.category === "EMERGING_PLAYER") selections.emergingPlayer = option;
+    } else if (award.team) {
+      const option: TeamOption = {
+        id: award.team.id,
+        name: award.team.name,
+        crestUrl: award.team.crestUrl,
+      };
+      if (award.category === "SURPRISE_TEAM") selections.surpriseTeam = option;
+      else if (award.category === "DISAPPOINTING_TEAM") selections.disappointingTeam = option;
+    }
+  }
+
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
       <div className={`border-l-4 ${accent.border} pl-4`}>
@@ -94,6 +154,20 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
           readOnly={readOnly}
           readOnlyReason={readOnlyReason}
         />
+      </div>
+
+      <div className="mt-10">
+        <h2 className="font-display text-xl font-bold">Award predictions</h2>
+        <div className="mt-4">
+          <AwardPicks
+            seasonId={season.id}
+            teams={awardTeams}
+            popularPlayers={popularPlayers}
+            popularU23Players={popularU23Players}
+            selections={selections}
+            disabled={readOnly}
+          />
+        </div>
       </div>
     </main>
   );

@@ -22,8 +22,8 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
 
       <div className="border-bk-border bg-bk-surface mt-8 rounded-lg border p-8 text-center">
         <p className="text-bk-text-secondary">
-          Live standings for {league.name} aren&apos;t wired up yet — that lands in Phase 5. You
-          can still drag the table into your predicted final order right now.
+          Live standings for {league.name} aren&apos;t wired up yet — that lands in Phase 5. You can
+          still drag the table into your predicted final order right now.
         </p>
         <Link
           href={`/predict/${league.slug}`}
