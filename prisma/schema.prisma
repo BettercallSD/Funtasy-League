@@ -1,0 +1,315 @@
+// Prisma schema for Ball Knowledge.
+// See CLAUDE.md "Core data model" for the source of truth on why these
+// fields exist (especially the season-versioned config on Season, and the
+// guest-prediction boundary on Prediction/User).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum SeasonStatus {
+  UPCOMING // created, predictions not yet open
+  OPEN // predictions open, before predictionLockAt
+  LOCKED // predictionLockAt has passed, season in progress
+  FINALIZED // SeasonResult entered, scores locked in
+}
+
+enum AwardCategory {
+  GOLDEN_BOOT
+  MOST_ASSISTS
+  YOUNG_PLAYER
+  SURPRISE_TEAM
+  DISAPPOINTING_TEAM
+  EMERGING_PLAYER
+}
+
+// ---------------------------------------------------------------------------
+// League / Season / Team / Player
+// ---------------------------------------------------------------------------
+
+model League {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  accentColor String
+  createdAt   DateTime @default(now())
+
+  seasons Season[]
+}
+
+model Season {
+  id       String @id @default(cuid())
+  league   League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  leagueId String
+
+  year Int
+
+  // Admin-configured per season — never hardcode these, formats change year to year.
+  teamCount                  Int
+  directRelegationCount      Int
+  playoffRelegationCount     Int
+  europeanQualificationSlots Int
+
+  predictionLockAt DateTime
+  status           SeasonStatus @default(UPCOMING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  seasonTeams   SeasonTeam[]
+  predictions   Prediction[]
+  seasonResult  SeasonResult?
+  friendLeagues FriendLeagueSeason[]
+
+  @@unique([leagueId, year])
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  shortName String?
+  crestUrl  String?
+  createdAt DateTime @default(now())
+
+  seasonTeams            SeasonTeam[]
+  players                Player[]
+  predictionTableEntries PredictionTableEntry[]
+  predictionAwards       PredictionAward[]
+  seasonResultEntries    SeasonResultTableEntry[]
+  seasonResultAwards     SeasonResultAward[]
+
+  @@unique([name])
+}
+
+// Which teams are in which league that season, and whether they were
+// promoted/relegated into/out of that spot. Season-versioned so a team's
+// membership (and status) is never assumed constant across years.
+model SeasonTeam {
+  id       String @id @default(cuid())
+  season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  seasonId String
+  team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId   String
+
+  promoted  Boolean @default(false)
+  relegated Boolean @default(false)
+
+  @@unique([seasonId, teamId])
+}
+
+model Player {
+  id          String   @id @default(cuid())
+  name        String
+  dateOfBirth DateTime
+  position    String?
+
+  currentTeam   Team?   @relation(fields: [currentTeamId], references: [id], onDelete: SetNull)
+  currentTeamId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  predictionAwards   PredictionAward[]
+  seasonResultAwards SeasonResultAward[]
+
+  @@index([name])
+}
+
+// ---------------------------------------------------------------------------
+// User
+// ---------------------------------------------------------------------------
+
+model User {
+  id       String  @id @default(cuid())
+  googleId String  @unique
+  email    String  @unique
+  name     String?
+  image    String?
+  isAdmin  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  predictions             Prediction[]         @relation("UserPredictions")
+  claimedPrediction       Prediction?          @relation("ClaimedPrediction")
+  friendLeaguesCreated    FriendLeague[]       @relation("FriendLeagueCreator")
+  friendLeagueMemberships FriendLeagueMember[]
+}
+
+// ---------------------------------------------------------------------------
+// Predictions
+// ---------------------------------------------------------------------------
+
+model Prediction {
+  id       String @id @default(cuid())
+  season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  seasonId String
+
+  // Real (signed-in) predictions set userId and leave guestToken null.
+  // Guest predictions set guestToken and leave userId null. isGuest mirrors
+  // this so every aggregate/scoring query can filter on one boolean instead
+  // of re-deriving it from nullability.
+  user       User?   @relation("UserPredictions", fields: [userId], references: [id], onDelete: Cascade)
+  userId     String?
+  isGuest    Boolean @default(false)
+  guestToken String? @unique
+
+  // A guest prediction can be claimed as personal history by exactly one
+  // user, ever. The @unique on claimedByUserId enforces "one claimable
+  // guest prediction per account" at the database level, not just in code.
+  claimedBy       User?     @relation("ClaimedPrediction", fields: [claimedByUserId], references: [id], onDelete: SetNull)
+  claimedByUserId String?   @unique
+  claimed         Boolean   @default(false)
+  claimedAt       DateTime?
+
+  // Label like "Predicted after GW1" for guest result cards, computed at
+  // submission time from the season's matchday schedule.
+  submittedLabel String?
+
+  lockedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  tableEntries PredictionTableEntry[]
+  awards       PredictionAward[]
+
+  @@unique([userId, seasonId])
+  @@index([seasonId, isGuest])
+}
+
+model PredictionTableEntry {
+  id           String     @id @default(cuid())
+  prediction   Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+  predictionId String
+  team         Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId       String
+
+  predictedPosition Int
+
+  @@unique([predictionId, teamId])
+  @@unique([predictionId, predictedPosition])
+}
+
+// One row per award category per prediction. Exactly one of playerId /
+// teamId is set, depending on whether `category` is a player-based award
+// (Golden Boot, Most Assists, Young Player, Emerging Player) or a
+// team-based award (Surprise Team, Disappointing Team) — enforced in the
+// Zod schema at the API boundary, not at the DB level.
+model PredictionAward {
+  id           String        @id @default(cuid())
+  prediction   Prediction    @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+  predictionId String
+  category     AwardCategory
+
+  player   Player? @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId String?
+  team     Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId   String?
+
+  @@unique([predictionId, category])
+}
+
+// ---------------------------------------------------------------------------
+// Season results (ground truth used to score every prediction)
+// ---------------------------------------------------------------------------
+
+model SeasonResult {
+  id       String @id @default(cuid())
+  season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  seasonId String @unique
+
+  finalizedAt       DateTime @default(now())
+  finalizedByUserId String
+
+  tableEntries SeasonResultTableEntry[]
+  awards       SeasonResultAward[]
+}
+
+model SeasonResultTableEntry {
+  id             String       @id @default(cuid())
+  seasonResult   SeasonResult @relation(fields: [seasonResultId], references: [id], onDelete: Cascade)
+  seasonResultId String
+  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId         String
+
+  finalPosition Int
+
+  @@unique([seasonResultId, teamId])
+  @@unique([seasonResultId, finalPosition])
+}
+
+// Award winners at season finalization. For SURPRISE_TEAM / DISAPPOINTING_TEAM
+// the average*/actual* fields hold the computed community-expectation math
+// so it can be displayed on the result page ("Community expected 8th,
+// finished 3rd"); isManualOverride flags when the admin overrode the
+// auto-calculation.
+model SeasonResultAward {
+  id             String        @id @default(cuid())
+  seasonResult   SeasonResult  @relation(fields: [seasonResultId], references: [id], onDelete: Cascade)
+  seasonResultId String
+  category       AwardCategory
+
+  player   Player? @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId String?
+  team     Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId   String?
+
+  averagePredictedPosition Float?
+  actualPosition           Int?
+  isManualOverride         Boolean @default(false)
+
+  @@unique([seasonResultId, category])
+}
+
+// ---------------------------------------------------------------------------
+// Friend leagues
+// ---------------------------------------------------------------------------
+
+model FriendLeague {
+  id        String @id @default(cuid())
+  creator   User   @relation("FriendLeagueCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId String
+
+  name       String
+  inviteCode String @unique
+  maxMembers Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  seasons FriendLeagueSeason[]
+  members FriendLeagueMember[]
+}
+
+// A friend league can be scoped to one or several seasons, chosen at
+// creation time. Points are only ever summed within this exact scope.
+model FriendLeagueSeason {
+  id             String       @id @default(cuid())
+  friendLeague   FriendLeague @relation(fields: [friendLeagueId], references: [id], onDelete: Cascade)
+  friendLeagueId String
+  season         Season       @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  seasonId       String
+
+  @@unique([friendLeagueId, seasonId])
+}
+
+model FriendLeagueMember {
+  id             String       @id @default(cuid())
+  friendLeague   FriendLeague @relation(fields: [friendLeagueId], references: [id], onDelete: Cascade)
+  friendLeagueId String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+
+  joinedAt DateTime @default(now())
+
+  @@unique([friendLeagueId, userId])
+}
