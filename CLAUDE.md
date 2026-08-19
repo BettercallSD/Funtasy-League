@@ -86,6 +86,7 @@ the main thing that keeps this from feeling like generic template software.
 | Golden Boot (top scorer)                                                                             | 20       |
 | Most assists                                                                                         | 20       |
 | Young Player of the Season                                                                           | 15       |
+| Emerging Player (U23)                                                                                | 15       |
 | Surprise Team                                                                                        | 10       |
 | Disappointing Team                                                                                   | 10       |
 

@@ -11,6 +11,12 @@ import {
   finalizeSeasonSchema,
 } from "@/lib/validation/season";
 import { AwardCategory } from "@/lib/generated/prisma/enums";
+import type { Prisma } from "@/lib/generated/prisma/client";
+import {
+  getAveragePredictedPositions,
+  pickSurpriseAndDisappointingTeam,
+} from "@/lib/surprise-disappointing";
+import { scorePrediction, type ScoringConfig, type TableAndAwards } from "@/lib/scoring";
 
 async function getLeagueBySlugOrNotFound(slug: string) {
   const league = await prisma.league.findUnique({ where: { slug } });
@@ -176,29 +182,77 @@ export async function finalizeSeason(seasonId: string, leagueSlug: string, formD
     );
   }
 
+  const seasonTeamIds = season.seasonTeams.map((seasonTeam) => seasonTeam.teamId);
+  const actualPositionByTeamId = new Map(
+    values.tableEntries.map((entry) => [entry.teamId, entry.finalPosition]),
+  );
+
+  // Surprise/Disappointing Team: an admin-picked team is a manual override;
+  // otherwise auto-calculate from the community's average predicted position
+  // vs. the actual result (CLAUDE.md). Either way, show the "Community
+  // expected Xth, finished Yth" math for whichever team ends up chosen.
+  const averageByTeamId = await getAveragePredictedPositions(seasonId);
+  const auto = pickSurpriseAndDisappointingTeam(averageByTeamId, actualPositionByTeamId);
+  const surpriseTeamId = values.surpriseTeamId ?? auto.surpriseTeamId ?? undefined;
+  const surpriseIsManual = Boolean(values.surpriseTeamId);
+  const disappointingTeamId = values.disappointingTeamId ?? auto.disappointingTeamId ?? undefined;
+  const disappointingIsManual = Boolean(values.disappointingTeamId);
+
+  function statsFor(teamId: string | undefined) {
+    if (!teamId) return { averagePredictedPosition: undefined, actualPosition: undefined };
+    return {
+      averagePredictedPosition: averageByTeamId.get(teamId)?.averagePredictedPosition,
+      actualPosition: actualPositionByTeamId.get(teamId),
+    };
+  }
+  const surpriseStats = statsFor(surpriseTeamId);
+  const disappointingStats = statsFor(disappointingTeamId);
+
   const awardEntries: {
     category: AwardCategory;
     playerId?: string;
     teamId?: string;
+    averagePredictedPosition?: number;
+    actualPosition?: number;
+    isManualOverride?: boolean;
   }[] = [
     { category: AwardCategory.GOLDEN_BOOT, playerId: values.goldenBootPlayerId },
     { category: AwardCategory.MOST_ASSISTS, playerId: values.mostAssistsPlayerId },
     { category: AwardCategory.YOUNG_PLAYER, playerId: values.youngPlayerPlayerId },
     { category: AwardCategory.EMERGING_PLAYER, playerId: values.emergingPlayerPlayerId },
-    { category: AwardCategory.SURPRISE_TEAM, teamId: values.surpriseTeamId },
-    { category: AwardCategory.DISAPPOINTING_TEAM, teamId: values.disappointingTeamId },
+    {
+      category: AwardCategory.SURPRISE_TEAM,
+      teamId: surpriseTeamId,
+      averagePredictedPosition: surpriseStats.averagePredictedPosition,
+      actualPosition: surpriseStats.actualPosition,
+      isManualOverride: surpriseIsManual,
+    },
+    {
+      category: AwardCategory.DISAPPOINTING_TEAM,
+      teamId: disappointingTeamId,
+      averagePredictedPosition: disappointingStats.averagePredictedPosition,
+      actualPosition: disappointingStats.actualPosition,
+      isManualOverride: disappointingIsManual,
+    },
   ].filter((entry) => entry.playerId || entry.teamId);
 
   const awardPlayerIds = awardEntries
     .map((entry) => entry.playerId)
     .filter((id): id is string => Boolean(id));
   if (awardPlayerIds.length > 0) {
-    const seasonTeamIds = season.seasonTeams.map((seasonTeam) => seasonTeam.teamId);
     const validPlayerCount = await prisma.player.count({
       where: { id: { in: awardPlayerIds }, currentTeamId: { in: seasonTeamIds } },
     });
     if (validPlayerCount !== new Set(awardPlayerIds).size) {
       throw new Error("One of the selected award players isn't in this season's league.");
+    }
+  }
+  const awardTeamIds = awardEntries
+    .map((entry) => entry.teamId)
+    .filter((id): id is string => Boolean(id));
+  for (const teamId of awardTeamIds) {
+    if (!seasonTeamIds.includes(teamId)) {
+      throw new Error("One of the selected award teams isn't in this season.");
     }
   }
 
@@ -226,6 +280,9 @@ export async function finalizeSeason(seasonId: string, leagueSlug: string, formD
           category: entry.category,
           playerId: entry.playerId,
           teamId: entry.teamId,
+          averagePredictedPosition: entry.averagePredictedPosition,
+          actualPosition: entry.actualPosition,
+          isManualOverride: entry.isManualOverride ?? false,
         })),
       });
     }
@@ -233,6 +290,55 @@ export async function finalizeSeason(seasonId: string, leagueSlug: string, formD
     await tx.season.update({ where: { id: seasonId }, data: { status: "FINALIZED" } });
   });
 
+  // Score every locked, non-guest prediction against the result just saved.
+  const scoringConfig: ScoringConfig = {
+    teamCount: season.teamCount,
+    topBracketSize:
+      season.championsLeagueSlots + season.europaLeagueSlots + season.conferenceLeagueSlots,
+    relegationSize: season.directRelegationCount + season.playoffRelegationCount,
+  };
+  const truth: TableAndAwards = {
+    positionByTeamId: actualPositionByTeamId,
+    goldenBootPlayerId: values.goldenBootPlayerId ?? null,
+    mostAssistsPlayerId: values.mostAssistsPlayerId ?? null,
+    youngPlayerPlayerId: values.youngPlayerPlayerId ?? null,
+    emergingPlayerPlayerId: values.emergingPlayerPlayerId ?? null,
+    surpriseTeamId: surpriseTeamId ?? null,
+    disappointingTeamId: disappointingTeamId ?? null,
+  };
+
+  const predictions = await prisma.prediction.findMany({
+    where: { seasonId, isGuest: false, lockedAt: { not: null } },
+    include: { tableEntries: true, awards: true },
+  });
+
+  for (const prediction of predictions) {
+    const awardsByCategory = new Map(prediction.awards.map((award) => [award.category, award]));
+    const predictionInput: TableAndAwards = {
+      positionByTeamId: new Map(
+        prediction.tableEntries.map((entry) => [entry.teamId, entry.predictedPosition]),
+      ),
+      goldenBootPlayerId: awardsByCategory.get(AwardCategory.GOLDEN_BOOT)?.playerId ?? null,
+      mostAssistsPlayerId: awardsByCategory.get(AwardCategory.MOST_ASSISTS)?.playerId ?? null,
+      youngPlayerPlayerId: awardsByCategory.get(AwardCategory.YOUNG_PLAYER)?.playerId ?? null,
+      emergingPlayerPlayerId: awardsByCategory.get(AwardCategory.EMERGING_PLAYER)?.playerId ?? null,
+      surpriseTeamId: awardsByCategory.get(AwardCategory.SURPRISE_TEAM)?.teamId ?? null,
+      disappointingTeamId: awardsByCategory.get(AwardCategory.DISAPPOINTING_TEAM)?.teamId ?? null,
+    };
+
+    const breakdown = scorePrediction(scoringConfig, truth, predictionInput);
+
+    await prisma.prediction.update({
+      where: { id: prediction.id },
+      data: {
+        finalScore: breakdown.total,
+        finalScoreBreakdown: breakdown as unknown as Prisma.InputJsonValue,
+        finalExactBonusCount: breakdown.exactPositionBonusCount,
+      },
+    });
+  }
+
   revalidatePath(`/admin/leagues/${leagueSlug}/seasons/${seasonId}`);
+  revalidatePath(`/leagues/${leagueSlug}/leaderboard`);
   redirect(`/admin/leagues/${leagueSlug}/seasons/${seasonId}`);
 }

@@ -75,6 +75,7 @@ model Season {
   predictions   Prediction[]
   seasonResult  SeasonResult?
   friendLeagues FriendLeagueSeason[]
+  snapshot      SeasonSnapshot?
 
   @@unique([leagueId, year])
 }
@@ -126,6 +127,7 @@ model Player {
 
   predictionAwards   PredictionAward[]
   seasonResultAwards SeasonResultAward[]
+  topScorerSnapshots SeasonSnapshot[]    @relation("SnapshotTopScorer")
 
   @@index([name])
 }
@@ -184,6 +186,18 @@ model Prediction {
   lockedAt  DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  // Locked in permanently at season finalize, computed by lib/scoring.ts
+  // against SeasonResult. Null until the season is finalized.
+  finalScore               Int?
+  finalScoreBreakdown      Json?
+  finalExactBonusCount     Int?
+  // Recomputed by the standings-sync cron against the latest SeasonSnapshot
+  // — "if the season ended today" scoring, shown on the live leaderboard.
+  projectedScore           Int?
+  projectedScoreBreakdown  Json?
+  projectedExactBonusCount Int?
+  projectedScoreUpdatedAt  DateTime?
 
   tableEntries PredictionTableEntry[]
   awards       PredictionAward[]
@@ -274,6 +288,26 @@ model SeasonResultAward {
   isManualOverride         Boolean @default(false)
 
   @@unique([seasonResultId, category])
+}
+
+// A periodically-refreshed cache of "current" standings/top-scorer data
+// pulled from football-data.org (Vercel Cron), used to compute every locked
+// prediction's *projected* score without touching the external API on every
+// page load. One row per season, overwritten in place each sync — this is
+// disposable derived data, not a historical record, so no snapshot history
+// is kept. `standings` is a JSON array of { teamId, position } rather than a
+// relation table since it's wholesale-replaced on every sync, not queried
+// piecemeal.
+model SeasonSnapshot {
+  id       String @id @default(cuid())
+  season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  seasonId String @unique
+
+  fetchedAt DateTime @default(now())
+  standings Json
+
+  topScorer   Player? @relation("SnapshotTopScorer", fields: [topScorerId], references: [id], onDelete: SetNull)
+  topScorerId String?
 }
 
 // ---------------------------------------------------------------------------
