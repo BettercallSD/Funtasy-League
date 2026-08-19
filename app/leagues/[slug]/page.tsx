@@ -45,6 +45,12 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
             Final leaderboard
           </Link>
         </div>
+        <Link
+          href={`/guest/predict/${league.slug}`}
+          className="text-bk-text-secondary mt-4 inline-block text-sm underline"
+        >
+          Just want to try it? Predict without signing in
+        </Link>
       </div>
     </main>
   );

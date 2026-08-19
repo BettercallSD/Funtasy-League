@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { signIn } from "@/lib/auth";
 
 export default async function SignInPage({
@@ -11,6 +12,13 @@ export default async function SignInPage({
     "use server";
     await signIn("google", callbackUrl ? { redirectTo: callbackUrl } : undefined);
   }
+
+  // If they were headed to a real prediction, offer the no-login version of
+  // that same league as a lower-friction alternative.
+  const predictMatch = callbackUrl?.match(/^\/predict\/([a-z0-9-]+)/);
+  const guestHref = predictMatch
+    ? `/guest/predict/${predictMatch[1]}`
+    : "/guest/predict/premier-league";
 
   return (
     <main className="mx-auto flex max-w-md flex-1 flex-col items-center justify-center px-4 py-16 text-center">
@@ -26,6 +34,9 @@ export default async function SignInPage({
           Continue with Google
         </button>
       </form>
+      <Link href={guestHref} className="text-bk-text-secondary mt-4 text-sm underline">
+        Or just try it without signing in
+      </Link>
     </main>
   );
 }

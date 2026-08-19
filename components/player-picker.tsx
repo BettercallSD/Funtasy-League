@@ -19,6 +19,7 @@ export function PlayerPicker({
   popularPlayers,
   selected,
   disabled,
+  onSelect,
 }: {
   seasonId: string;
   category: AwardCategory;
@@ -27,6 +28,8 @@ export function PlayerPicker({
   popularPlayers: PlayerOption[];
   selected: PlayerOption | null;
   disabled: boolean;
+  /** Controlled mode (e.g. guest predictions): report the pick instead of persisting it via setAward. */
+  onSelect?: (player: PlayerOption | null) => void;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PlayerOption[]>([]);
@@ -68,6 +71,15 @@ export function PlayerPicker({
 
   function choose(player: PlayerOption) {
     setError(null);
+
+    if (onSelect) {
+      onSelect(player);
+      setCurrent(player);
+      setQuery("");
+      setResults([]);
+      return;
+    }
+
     startTransition(async () => {
       try {
         await setAward(seasonId, category, player.id);
@@ -97,7 +109,10 @@ export function PlayerPicker({
           {!disabled && (
             <button
               type="button"
-              onClick={() => setCurrent(null)}
+              onClick={() => {
+                setCurrent(null);
+                onSelect?.(null);
+              }}
               className="text-bk-text-secondary text-xs underline"
             >
               Change

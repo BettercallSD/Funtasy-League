@@ -6,11 +6,17 @@ import { formatSeasonYear } from "@/lib/format-season";
 export default async function MyPredictionsPage() {
   const session = await requireUser("/me");
 
-  const predictions = await prisma.prediction.findMany({
-    where: { userId: session.user.id, isGuest: false },
-    include: { season: { include: { league: true } } },
-    orderBy: [{ season: { year: "desc" } }],
-  });
+  const [predictions, claimedGuestPrediction] = await Promise.all([
+    prisma.prediction.findMany({
+      where: { userId: session.user.id, isGuest: false },
+      include: { season: { include: { league: true } } },
+      orderBy: [{ season: { year: "desc" } }],
+    }),
+    prisma.prediction.findUnique({
+      where: { claimedByUserId: session.user.id },
+      include: { season: { include: { league: true } } },
+    }),
+  ]);
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-12">
@@ -41,6 +47,27 @@ export default async function MyPredictionsPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {claimedGuestPrediction && (
+        <section className="mt-10">
+          <h2 className="font-display text-lg font-semibold">Claimed guest prediction</h2>
+          <p className="text-bk-text-secondary mt-1 text-sm">
+            Personal history only — this never counted on any leaderboard.
+          </p>
+          <Link
+            href={`/guest/result/${claimedGuestPrediction.guestToken}`}
+            className="border-bk-border bg-bk-surface hover:bg-bk-surface-raised mt-3 flex items-center justify-between rounded-lg border p-4 text-sm"
+          >
+            <span className="font-display font-semibold">
+              {claimedGuestPrediction.season.league.name} ·{" "}
+              {formatSeasonYear(claimedGuestPrediction.season.year)}
+            </span>
+            <span className="text-bk-text-secondary text-xs">
+              {claimedGuestPrediction.submittedLabel}
+            </span>
+          </Link>
+        </section>
       )}
     </main>
   );

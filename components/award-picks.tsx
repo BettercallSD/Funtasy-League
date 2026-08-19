@@ -14,6 +14,8 @@ export interface AwardSelections {
   disappointingTeam?: TeamOption;
 }
 
+type AwardField = keyof AwardSelections;
+
 // Each category gets its own "popular picks" list — the popular Golden Boot
 // pick and the popular Young Player pick are unrelated, so sharing one list
 // across categories would be misleading.
@@ -30,12 +32,15 @@ export function AwardPicks({
   popular,
   selections,
   disabled,
+  onAwardChange,
 }: {
   seasonId: string;
   teams: TeamOption[];
   popular: PopularPlayerPicks;
   selections: AwardSelections;
   disabled: boolean;
+  /** Controlled mode (e.g. guest predictions): report picks instead of persisting via setAward. */
+  onAwardChange?: (field: AwardField, value: PlayerOption | TeamOption | null) => void;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -46,6 +51,7 @@ export function AwardPicks({
         popularPlayers={popular.goldenBoot}
         selected={selections.goldenBoot ?? null}
         disabled={disabled}
+        onSelect={onAwardChange && ((value) => onAwardChange("goldenBoot", value))}
       />
       <PlayerPicker
         seasonId={seasonId}
@@ -54,6 +60,7 @@ export function AwardPicks({
         popularPlayers={popular.mostAssists}
         selected={selections.mostAssists ?? null}
         disabled={disabled}
+        onSelect={onAwardChange && ((value) => onAwardChange("mostAssists", value))}
       />
       <PlayerPicker
         seasonId={seasonId}
@@ -62,6 +69,7 @@ export function AwardPicks({
         popularPlayers={popular.youngPlayer}
         selected={selections.youngPlayer ?? null}
         disabled={disabled}
+        onSelect={onAwardChange && ((value) => onAwardChange("youngPlayer", value))}
       />
       <PlayerPicker
         seasonId={seasonId}
@@ -71,6 +79,7 @@ export function AwardPicks({
         popularPlayers={popular.emergingPlayer}
         selected={selections.emergingPlayer ?? null}
         disabled={disabled}
+        onSelect={onAwardChange && ((value) => onAwardChange("emergingPlayer", value))}
       />
       <TeamPicker
         seasonId={seasonId}
@@ -79,6 +88,7 @@ export function AwardPicks({
         teams={teams}
         selected={selections.surpriseTeam ?? null}
         disabled={disabled}
+        onSelect={onAwardChange && ((value) => onAwardChange("surpriseTeam", value))}
       />
       <TeamPicker
         seasonId={seasonId}
@@ -87,6 +97,7 @@ export function AwardPicks({
         teams={teams}
         selected={selections.disappointingTeam ?? null}
         disabled={disabled}
+        onSelect={onAwardChange && ((value) => onAwardChange("disappointingTeam", value))}
       />
     </div>
   );

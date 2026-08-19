@@ -17,6 +17,7 @@ export function TeamPicker({
   teams,
   selected,
   disabled,
+  onSelect,
 }: {
   seasonId: string;
   category: AwardCategory;
@@ -24,6 +25,8 @@ export function TeamPicker({
   teams: TeamOption[];
   selected: TeamOption | null;
   disabled: boolean;
+  /** Controlled mode (e.g. guest predictions): report the pick instead of persisting it via setAward. */
+  onSelect?: (team: TeamOption | null) => void;
 }) {
   const [query, setQuery] = useState("");
   const [current, setCurrent] = useState(selected);
@@ -34,6 +37,14 @@ export function TeamPicker({
 
   function choose(team: TeamOption) {
     setError(null);
+
+    if (onSelect) {
+      onSelect(team);
+      setCurrent(team);
+      setQuery("");
+      return;
+    }
+
     startTransition(async () => {
       try {
         await setAward(seasonId, category, team.id);
@@ -59,7 +70,10 @@ export function TeamPicker({
           {!disabled && (
             <button
               type="button"
-              onClick={() => setCurrent(null)}
+              onClick={() => {
+                setCurrent(null);
+                onSelect?.(null);
+              }}
               className="text-bk-text-secondary text-xs underline"
             >
               Change
