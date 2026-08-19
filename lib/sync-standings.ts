@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { fetchStandings, fetchTopScorer, delay, COMPETITION_CODES } from "@/lib/football-data-api";
+import { matchTeamByName } from "@/lib/match-team-name";
 import { scorePrediction, type ScoringConfig, type TableAndAwards } from "@/lib/scoring";
 import { AwardCategory } from "@/lib/generated/prisma/enums";
 import type { Prisma } from "@/lib/generated/prisma/client";
@@ -13,38 +14,6 @@ export interface SyncResult {
 
 function isSupportedLeagueSlug(slug: string): slug is LeagueSlug {
   return slug in COMPETITION_CODES;
-}
-
-// External team names never match our admin-entered names exactly (e.g.
-// "Manchester City FC" vs "Manchester City") — strip suffixes/punctuation
-// and compare, falling back to substring containment. Unmatched teams are
-// simply left out of the snapshot; the scoring engine degrades gracefully
-// rather than requiring a complete permutation.
-function normalizeTeamName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/\b(fc|cf|afc|ac)\b/g, "")
-    .replace(/[^a-z0-9]/g, "");
-}
-
-function matchTeamByName(
-  externalName: string,
-  candidateTeams: { id: string; name: string }[],
-): string | null {
-  const normalizedExternal = normalizeTeamName(externalName);
-  for (const team of candidateTeams) {
-    if (normalizeTeamName(team.name) === normalizedExternal) return team.id;
-  }
-  for (const team of candidateTeams) {
-    const normalizedTeam = normalizeTeamName(team.name);
-    if (
-      normalizedTeam.length > 0 &&
-      (normalizedTeam.includes(normalizedExternal) || normalizedExternal.includes(normalizedTeam))
-    ) {
-      return team.id;
-    }
-  }
-  return null;
 }
 
 // Pulls current standings + top scorer for every non-finalized season,

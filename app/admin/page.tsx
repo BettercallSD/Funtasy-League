@@ -28,11 +28,11 @@ export default async function AdminPage() {
       </ul>
 
       <section className="border-bk-border mt-8 rounded-lg border p-4">
-        <h2 className="font-display text-lg font-semibold">Live standings sync</h2>
+        <h2 className="font-display text-lg font-semibold">Live sync</h2>
         <p className="text-bk-text-secondary mt-1 text-sm">
-          Runs automatically once a day via Vercel Cron. Pulls current standings + top scorer from
-          football-data.org for every non-finalized season and recomputes everyone&apos;s projected
-          score.
+          Runs automatically once a day via Vercel Cron. Pulls the full current squad for every team
+          (so award search covers real players, not a hand-picked list) plus standings + top scorer,
+          for every non-finalized season, and recomputes everyone&apos;s projected score.
         </p>
         <div className="mt-3">
           <SyncStandingsButton />

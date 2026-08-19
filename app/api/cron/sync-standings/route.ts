@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { syncAllActiveSeasons } from "@/lib/sync-standings";
+import { syncPlayersForActiveSeasons } from "@/lib/sync-players";
 
 // Vercel Cron calls this with `Authorization: Bearer <CRON_SECRET>` — reject
 // anything else so this public URL can't be used to spam football-data.org
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const results = await syncAllActiveSeasons();
-  return NextResponse.json({ results });
+  const playerResults = await syncPlayersForActiveSeasons();
+  const standingsResults = await syncAllActiveSeasons();
+  return NextResponse.json({ playerResults, standingsResults });
 }

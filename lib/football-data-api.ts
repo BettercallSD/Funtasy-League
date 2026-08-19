@@ -25,6 +25,17 @@ export interface TopScorerResult {
   teamExternalName: string | null;
 }
 
+export interface SquadPlayer {
+  name: string;
+  position: string | null;
+  dateOfBirth: string | null;
+}
+
+export interface TeamSquad {
+  teamExternalName: string;
+  players: SquadPlayer[];
+}
+
 async function footballDataFetch(path: string): Promise<unknown> {
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
   if (!apiKey) {
@@ -60,6 +71,26 @@ export async function fetchTopScorer(leagueSlug: LeagueSlug): Promise<TopScorerR
   const top = data.scorers[0];
   if (!top) return null;
   return { playerName: top.player.name, teamExternalName: top.team?.name ?? null };
+}
+
+// One call returns every team's full squad for the competition — much
+// cheaper on the free-tier rate limit than one request per team.
+export async function fetchSquads(leagueSlug: LeagueSlug): Promise<TeamSquad[]> {
+  const code = COMPETITION_CODES[leagueSlug];
+  const data = (await footballDataFetch(`/competitions/${code}/teams`)) as {
+    teams: {
+      name: string;
+      squad: { name: string; position?: string | null; dateOfBirth?: string | null }[];
+    }[];
+  };
+  return data.teams.map((team) => ({
+    teamExternalName: team.name,
+    players: (team.squad ?? []).map((player) => ({
+      name: player.name,
+      position: player.position ?? null,
+      dateOfBirth: player.dateOfBirth ?? null,
+    })),
+  }));
 }
 
 export function delay(ms: number): Promise<void> {
