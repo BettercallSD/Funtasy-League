@@ -353,3 +353,19 @@ model FriendLeagueMember {
 
   @@unique([friendLeagueId, userId])
 }
+
+// ---------------------------------------------------------------------------
+// Rate limiting
+// ---------------------------------------------------------------------------
+
+// Backs lib/rate-limit.ts. A DB-backed limiter (not in-memory) because
+// Vercel serverless functions don't share memory across instances — this is
+// the only source of truth that's actually consistent in that environment.
+// `key` is a scope+identity string, e.g. "friend-league-join:203.0.113.4".
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}

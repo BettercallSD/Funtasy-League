@@ -1,5 +1,6 @@
 import type { Session } from "next-auth";
 import Image from "next/image";
+import Link from "next/link";
 import { signInWithGoogle, signOutAction } from "@/lib/actions/auth-actions";
 
 export function AccountMenu({ session }: { session: Session | null }) {
@@ -32,7 +33,19 @@ export function AccountMenu({ session }: { session: Session | null }) {
           {name}
         </span>
       </summary>
-      <div className="border-bk-border bg-bk-surface-raised absolute right-0 z-10 mt-2 w-40 rounded-lg border p-1 shadow-lg">
+      <div className="border-bk-border bg-bk-surface-raised absolute right-0 z-10 mt-2 w-44 rounded-lg border p-1 shadow-lg">
+        <Link
+          href="/me"
+          className="text-bk-text-secondary hover:bg-bk-border hover:text-bk-text block rounded-md px-3 py-2 text-sm"
+        >
+          My predictions
+        </Link>
+        <Link
+          href="/friend-leagues"
+          className="text-bk-text-secondary hover:bg-bk-border hover:text-bk-text block rounded-md px-3 py-2 text-sm"
+        >
+          Friend leagues
+        </Link>
         <form action={signOutAction}>
           <button
             type="submit"

@@ -1,10 +1,10 @@
 "use server";
 
-import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect, notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/require-admin";
 import { prisma } from "@/lib/prisma";
+import { parseOrThrow } from "@/lib/parse-or-throw";
 import {
   seasonFormSchema,
   seasonTeamFormSchema,
@@ -22,14 +22,6 @@ async function getLeagueBySlugOrNotFound(slug: string) {
   const league = await prisma.league.findUnique({ where: { slug } });
   if (!league) notFound();
   return league;
-}
-
-function parseOrThrow<T>(schema: z.ZodType<T>, data: unknown): T {
-  const result = schema.safeParse(data);
-  if (!result.success) {
-    throw new Error(result.error.issues[0]?.message ?? "Invalid input");
-  }
-  return result.data;
 }
 
 export async function createSeason(leagueSlug: string, formData: FormData) {
