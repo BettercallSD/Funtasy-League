@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { requireUser } from "@/lib/require-user";
@@ -5,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { formatSeasonYear } from "@/lib/format-season";
 import { getFriendLeagueScores } from "@/lib/friend-league-leaderboard";
 import { computeRanks } from "@/lib/rank-predictions";
+import { getMedalEmoji } from "@/lib/medals";
 import { removeMember, regenerateInviteCode } from "@/lib/actions/friend-league-actions";
 
 export default async function FriendLeagueDetailPage({
@@ -75,7 +77,15 @@ export default async function FriendLeagueDetailPage({
       )}
 
       <section className="mt-8">
-        <h2 className="font-display text-lg font-semibold">Leaderboard</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold">Leaderboard</h2>
+          <Link
+            href={`/friend-leagues/${friendLeague.id}/recap`}
+            className="font-display text-bk-text-secondary hover:text-bk-text text-sm font-semibold"
+          >
+            🏆 My recap
+          </Link>
+        </div>
         <div className="border-bk-border mt-3 overflow-hidden rounded-lg border">
           <table className="w-full border-collapse text-sm">
             <thead>
@@ -88,7 +98,9 @@ export default async function FriendLeagueDetailPage({
             <tbody className="divide-bk-border divide-y">
               {ranked.map((entry) => (
                 <tr key={entry.userId} className="bg-bk-surface">
-                  <td className="font-display px-4 py-3 tabular-nums">{entry.rank}</td>
+                  <td className="font-display px-4 py-3 tabular-nums">
+                    {getMedalEmoji(entry.rank) ?? entry.rank}
+                  </td>
                   <td className="px-4 py-3">{entry.userName}</td>
                   <td className="font-display px-4 py-3 text-right font-semibold tabular-nums">
                     {entry.totalScore}

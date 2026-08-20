@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 import { formatSeasonYear } from "@/lib/format-season";
 import { computeRanks } from "@/lib/rank-predictions";
+import { getMedalEmoji } from "@/lib/medals";
 
 export default async function LeaderboardPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -40,6 +42,8 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ sl
     );
   }
 
+  const session = await auth();
+
   // Guest predictions never enter the public leaderboard — this boundary is
   // structural (isGuest checked here), not a UI-level hide.
   const predictions = await prisma.prediction.findMany({
@@ -51,10 +55,15 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ sl
   const ranked = computeRanks(
     predictions.map((prediction) => ({
       id: prediction.id,
+      userId: prediction.userId,
       userName: prediction.user?.name ?? "Anonymous",
       score: prediction.finalScore ?? 0,
       exactBonusCount: prediction.finalExactBonusCount ?? 0,
     })),
+  );
+
+  const viewerIsRanked = Boolean(
+    session?.user?.id && ranked.some((entry) => entry.userId === session.user.id),
   );
 
   return (
@@ -67,6 +76,15 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ sl
         </p>
         <h1 className="font-display mt-1 text-2xl font-bold">Final leaderboard</h1>
       </div>
+
+      {viewerIsRanked && (
+        <Link
+          href={`/leagues/${slug}/recap`}
+          className={`font-display mt-4 inline-block text-sm font-semibold ${accent.text}`}
+        >
+          🏆 See my recap
+        </Link>
+      )}
 
       {ranked.length === 0 ? (
         <p className="text-bk-text-secondary mt-6">
@@ -86,7 +104,9 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ sl
             <tbody className="divide-bk-border divide-y">
               {ranked.map((entry) => (
                 <tr key={entry.id} className="bg-bk-surface">
-                  <td className="font-display px-4 py-3 tabular-nums">{entry.rank}</td>
+                  <td className="font-display px-4 py-3 tabular-nums">
+                    {getMedalEmoji(entry.rank) ?? entry.rank}
+                  </td>
                   <td className="px-4 py-3">{entry.userName}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{entry.exactBonusCount}</td>
                   <td className="font-display px-4 py-3 text-right font-semibold tabular-nums">
