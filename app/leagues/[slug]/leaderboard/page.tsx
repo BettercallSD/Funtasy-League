@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireUser } from "@/lib/require-user";
 import { prisma } from "@/lib/prisma";
 import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 import { formatSeasonYear } from "@/lib/format-season";
@@ -11,6 +11,7 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ sl
   const { slug } = await params;
   const leagueConfig = getLeague(slug);
   if (!leagueConfig) notFound();
+  const session = await requireUser(`/leagues/${slug}/leaderboard`);
   const accent = LEAGUE_ACCENT_CLASSES[leagueConfig.slug];
 
   // Most recently finalized season for this league — scores only exist
@@ -41,8 +42,6 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ sl
       </main>
     );
   }
-
-  const session = await auth();
 
   // Guest predictions never enter the public leaderboard — this boundary is
   // structural (isGuest checked here), not a UI-level hide.

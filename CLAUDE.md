@@ -146,5 +146,8 @@ signs up after the lock has passed, they've missed the competitive window for th
   Points are summed only across that agreed scope, so members are always compared like-for-like.
   Invite via a shareable link with a short code, permanent for the life of the league (no
   regenerate option — the code stays the same); creator can remove members. No member cap.
-- **Public leaderboards**: one per league per season (never combined across leagues), ranking every
-  locked, non-guest prediction for that league-season.
+- **Public leaderboards**: one per league per season (never combined across leagues, and never
+  scoped to a friend group like FriendLeague is), ranking every locked, non-guest prediction for
+  that league-season. "Public" describes the scope (every signed-up predictor, not a private
+  friend group) — viewing still requires being signed in, same as the live projected leaderboard;
+  neither is visible to a logged-out or guest visitor, who gets sent to sign in instead.

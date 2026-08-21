@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 
 export default async function LeaguePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -7,6 +8,7 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
   const league = getLeague(slug);
   if (!league) notFound();
 
+  const session = await auth();
   const accent = LEAGUE_ACCENT_CLASSES[league.slug];
 
   return (
@@ -45,12 +47,14 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
             Final leaderboard
           </Link>
         </div>
-        <Link
-          href={`/guest/predict/${league.slug}`}
-          className="text-bk-text-secondary mt-4 inline-block text-sm underline"
-        >
-          Just want to try it? Predict without signing in
-        </Link>
+        {!session?.user && (
+          <Link
+            href={`/guest/predict/${league.slug}`}
+            className="text-bk-text-secondary mt-4 inline-block text-sm underline"
+          >
+            Just want to try it? Predict without signing in
+          </Link>
+        )}
       </div>
     </main>
   );

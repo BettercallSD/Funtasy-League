@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireUser } from "@/lib/require-user";
 import { prisma } from "@/lib/prisma";
 import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 import { formatSeasonYear } from "@/lib/format-season";
@@ -13,6 +14,7 @@ export default async function LivePredictionLeaguePage({
   const { slug } = await params;
   const leagueConfig = getLeague(slug);
   if (!leagueConfig) notFound();
+  await requireUser(`/leagues/${slug}/live`);
   const accent = LEAGUE_ACCENT_CLASSES[leagueConfig.slug];
 
   const season = await prisma.season.findFirst({
