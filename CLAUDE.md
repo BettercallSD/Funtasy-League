@@ -81,21 +81,26 @@ template software.
 
 ## Scoring rules (exactly this — keep it simple, this is final)
 
-| Prediction                                                                                           | Points   |
-| ---------------------------------------------------------------------------------------------------- | -------- |
-| Champion correct                                                                                     | 25       |
-| Top-bracket team (any order, N = `championsLeagueSlots + europaLeagueSlots + conferenceLeagueSlots`) | 10 each  |
-| Exact league position (any team, stacks with the above — e.g. exact champion = 25+5=30)              | +5 bonus |
-| Relegated team (any order, counts direct + playoff relegation slots)                                 | 15 each  |
-| Golden Boot (top scorer)                                                                             | 20       |
-| Most assists                                                                                         | 20       |
-| Young Player of the Season (U23)                                                                     | 15       |
-| Player of the Season                                                                                 | 15       |
-| Surprise Team                                                                                        | 10       |
-| Disappointing Team                                                                                   | 10       |
+| Prediction                                                                                           | Points                   |
+| ---------------------------------------------------------------------------------------------------- | ------------------------ |
+| Champion correct                                                                                     | 25                       |
+| Top-bracket team (any order, N = `championsLeagueSlots + europaLeagueSlots + conferenceLeagueSlots`) | 10 each                  |
+| Exact league position (any team, stacks with the above — e.g. exact champion = 25+5=30)              | +5 bonus                 |
+| Relegated team (any order, counts direct + playoff relegation slots)                                 | 10 each                  |
+| Golden Boot (top scorer)                                                                             | 20                       |
+| Most assists                                                                                         | 20                       |
+| Young Player of the Season (U23)                                                                     | 15                       |
+| Player of the Season                                                                                 | 25                       |
+| Surprise Team                                                                                        | 0 (hot take, not scored) |
+| Disappointing Team                                                                                   | 0 (hot take, not scored) |
 
 Tie-breaker for any leaderboard: whoever has the most "+5 exact position" bonuses wins the tie.
 If still tied, they're shown tied — no further tiebreak.
+
+Surprise Team and Disappointing Team stay as prediction categories — they're just no longer worth
+points. They're the "hot take" picks, made before a ball is kicked, so the interesting part is
+whether a user called it, not extra leaderboard points. Correctness is still tracked and shown on
+recap pages ("you called it" / "you missed on this one"), it just doesn't add to the total score.
 
 ## How award categories get resolved at season end
 

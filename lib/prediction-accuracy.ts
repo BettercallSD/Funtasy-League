@@ -27,13 +27,13 @@ export function parseScoreBreakdown(value: unknown): ScoreBreakdown | null {
 export function computeAccuracy(breakdown: ScoreBreakdown, config: AccuracyConfig): AccuracyStat {
   const championHit = breakdown.championPoints > 0 ? 1 : 0;
   const topBracketHits = breakdown.topBracketPoints / 10;
-  const relegationHits = breakdown.relegationPoints / 15;
+  const relegationHits = breakdown.relegationPoints / 10;
   const goldenBootHit = breakdown.goldenBootPoints > 0 ? 1 : 0;
   const mostAssistsHit = breakdown.mostAssistsPoints > 0 ? 1 : 0;
   const youngPlayerHit = breakdown.youngPlayerPoints > 0 ? 1 : 0;
   const emergingPlayerHit = breakdown.emergingPlayerPoints > 0 ? 1 : 0;
-  const surpriseTeamHit = breakdown.surpriseTeamPoints > 0 ? 1 : 0;
-  const disappointingTeamHit = breakdown.disappointingTeamPoints > 0 ? 1 : 0;
+  const surpriseTeamHit = breakdown.surpriseTeamCorrect ? 1 : 0;
+  const disappointingTeamHit = breakdown.disappointingTeamCorrect ? 1 : 0;
 
   const correct =
     championHit +

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { formatSeasonYear } from "@/lib/format-season";
 import { getPopularPlayerPicks } from "@/lib/popular-awards";
 import { CountdownBanner } from "@/components/countdown-banner";
+import { PointsExplainer } from "@/components/points-explainer";
 import { PredictionBoard, type PredictionTeam } from "@/components/prediction-board";
 import { AwardPicks, type AwardSelections } from "@/components/award-picks";
 import type { PlayerOption } from "@/components/player-picker";
@@ -128,6 +129,15 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
           {leagueConfig.name} · {formatSeasonYear(season.year)}
         </p>
         <h1 className="font-display mt-1 text-2xl font-bold">Predict the final table</h1>
+      </div>
+
+      <div className="mt-6">
+        <PointsExplainer
+          topBracketSize={
+            season.championsLeagueSlots + season.europaLeagueSlots + season.conferenceLeagueSlots
+          }
+          relegationSize={season.directRelegationCount + season.playoffRelegationCount}
+        />
       </div>
 
       <div className="mt-6">

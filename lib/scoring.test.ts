@@ -32,11 +32,11 @@ describe("scorePrediction", () => {
     // from that side of the table scores either.
     expect(result.championPoints).toBe(25);
     expect(result.topBracketPoints).toBe(30); // 3 teams x 10
-    expect(result.relegationPoints).toBe(30); // 2 teams x 15
+    expect(result.relegationPoints).toBe(20); // 2 teams x 10
     expect(result.exactPositionBonusCount).toBe(6);
     expect(result.exactPositionBonusPoints).toBe(30); // 6 teams x 5
     expect(result.goldenBootPoints).toBe(0);
-    expect(result.total).toBe(25 + 30 + 30 + 30);
+    expect(result.total).toBe(25 + 30 + 30 + 20);
   });
 
   it("awards the champion bonus only for an exact #1 match, stacking with the +5 exact bonus", () => {
@@ -87,7 +87,7 @@ describe("scorePrediction", () => {
       positionByTeamId: table(["A", "B", "C", "D", "F", "E"]), // E/F swapped
     };
     const result = scorePrediction(config, truth, prediction);
-    expect(result.relegationPoints).toBe(30); // both relegated teams hit, order doesn't matter
+    expect(result.relegationPoints).toBe(20); // both relegated teams hit, order doesn't matter
   });
 
   it("scores each award category independently, worth their CLAUDE.md point values", () => {
@@ -115,8 +115,9 @@ describe("scorePrediction", () => {
     expect(result.mostAssistsPoints).toBe(0);
     expect(result.youngPlayerPoints).toBe(15);
     expect(result.emergingPlayerPoints).toBe(0);
-    expect(result.surpriseTeamPoints).toBe(10);
-    expect(result.disappointingTeamPoints).toBe(0);
+    // Surprise/Disappointing Team are hot takes, not scored — just tracked.
+    expect(result.surpriseTeamCorrect).toBe(true);
+    expect(result.disappointingTeamCorrect).toBe(false);
   });
 
   it("never awards points for a category the ground truth hasn't set yet, even on a coincidental match", () => {
@@ -155,11 +156,12 @@ describe("scorePrediction", () => {
       result.goldenBootPoints +
       result.mostAssistsPoints +
       result.youngPlayerPoints +
-      result.emergingPlayerPoints +
-      result.surpriseTeamPoints +
-      result.disappointingTeamPoints;
+      result.emergingPlayerPoints;
     expect(result.total).toBe(expectedTotal);
-    // Perfect prediction across the board: 25 + 30 + 30 + 30 + 20+20+15+15+10+10
-    expect(result.total).toBe(205);
+    // Perfect prediction across the board: 25 + 30 + 30 + 20 + 20+20+15+25
+    // (Surprise/Disappointing Team don't add to the total — hot takes only.)
+    expect(result.total).toBe(185);
+    expect(result.surpriseTeamCorrect).toBe(true);
+    expect(result.disappointingTeamCorrect).toBe(true);
   });
 });

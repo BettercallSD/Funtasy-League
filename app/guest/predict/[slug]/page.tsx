@@ -4,6 +4,7 @@ import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 import { prisma } from "@/lib/prisma";
 import { getPopularPlayerPicks } from "@/lib/popular-awards";
 import { GuestPredictionForm } from "@/components/guest-prediction-form";
+import { PointsExplainer } from "@/components/points-explainer";
 import type { PredictionTeam } from "@/components/prediction-board";
 import type { TeamOption } from "@/components/team-picker";
 
@@ -78,6 +79,15 @@ export default async function GuestPredictPage({ params }: { params: Promise<{ s
         </Link>{" "}
         if you want it saved to come back to later — or to actually compete for real.
       </p>
+
+      <div className="mt-6">
+        <PointsExplainer
+          topBracketSize={
+            season.championsLeagueSlots + season.europaLeagueSlots + season.conferenceLeagueSlots
+          }
+          relegationSize={season.directRelegationCount + season.playoffRelegationCount}
+        />
+      </div>
 
       <div className="mt-6">
         <GuestPredictionForm

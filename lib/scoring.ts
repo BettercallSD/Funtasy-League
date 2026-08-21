@@ -36,8 +36,11 @@ export interface ScoreBreakdown {
   mostAssistsPoints: number;
   youngPlayerPoints: number;
   emergingPlayerPoints: number;
-  surpriseTeamPoints: number;
-  disappointingTeamPoints: number;
+  /** Hot takes, not scored — tracked so accuracy stats and recap pages can
+   * still show whether the pick was right, per CLAUDE.md's "scrap the
+   * points but keep the categories" rule. */
+  surpriseTeamCorrect: boolean;
+  disappointingTeamCorrect: boolean;
   total: number;
 }
 
@@ -98,7 +101,7 @@ export function scorePrediction(
   const relegationHits = [...truthRelegated].filter((teamId) =>
     predictionRelegated.has(teamId),
   ).length;
-  const relegationPoints = relegationHits * 15;
+  const relegationPoints = relegationHits * 10;
 
   let exactPositionBonusCount = 0;
   for (const [teamId, truthPosition] of truth.positionByTeamId) {
@@ -125,15 +128,13 @@ export function scorePrediction(
   const emergingPlayerPoints =
     truth.emergingPlayerPlayerId !== null &&
     truth.emergingPlayerPlayerId === prediction.emergingPlayerPlayerId
-      ? 15
+      ? 25
       : 0;
-  const surpriseTeamPoints =
-    truth.surpriseTeamId !== null && truth.surpriseTeamId === prediction.surpriseTeamId ? 10 : 0;
-  const disappointingTeamPoints =
+  const surpriseTeamCorrect =
+    truth.surpriseTeamId !== null && truth.surpriseTeamId === prediction.surpriseTeamId;
+  const disappointingTeamCorrect =
     truth.disappointingTeamId !== null &&
-    truth.disappointingTeamId === prediction.disappointingTeamId
-      ? 10
-      : 0;
+    truth.disappointingTeamId === prediction.disappointingTeamId;
 
   const total =
     championPoints +
@@ -143,9 +144,7 @@ export function scorePrediction(
     goldenBootPoints +
     mostAssistsPoints +
     youngPlayerPoints +
-    emergingPlayerPoints +
-    surpriseTeamPoints +
-    disappointingTeamPoints;
+    emergingPlayerPoints;
 
   return {
     championPoints,
@@ -157,8 +156,8 @@ export function scorePrediction(
     mostAssistsPoints,
     youngPlayerPoints,
     emergingPlayerPoints,
-    surpriseTeamPoints,
-    disappointingTeamPoints,
+    surpriseTeamCorrect,
+    disappointingTeamCorrect,
     total,
   };
 }
