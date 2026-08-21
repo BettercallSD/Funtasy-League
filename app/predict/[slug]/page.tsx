@@ -77,13 +77,16 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
 
   const lockedAt = prediction?.lockedAt ?? null;
   const seasonClosed = new Date() >= season.predictionLockAt;
-  const readOnly = seasonClosed || lockedAt !== null;
+  // Locking in doesn't freeze the prediction — it's editable (and
+  // re-lockable) as many times as the user wants right up until the
+  // season's deadline, which is the only thing that makes it read-only.
+  const readOnly = seasonClosed;
 
   let readOnlyReason: string | undefined;
-  if (lockedAt) {
-    readOnlyReason = `You locked this in on ${lockedAt.toLocaleString()}.`;
-  } else if (seasonClosed) {
-    readOnlyReason = "Predictions closed before you locked one in for this season.";
+  if (seasonClosed) {
+    readOnlyReason = lockedAt
+      ? "Predictions are closed for this season — your locked-in prediction is final."
+      : "Predictions closed before you locked one in for this season.";
   }
 
   const awardTeams: TeamOption[] = season.seasonTeams.map((seasonTeam) => ({
@@ -129,6 +132,11 @@ export default async function PredictPage({ params }: { params: Promise<{ slug: 
 
       <div className="mt-6">
         {!seasonClosed && <CountdownBanner lockAt={season.predictionLockAt.toISOString()} />}
+        {!seasonClosed && lockedAt && (
+          <p className="text-bk-text-secondary mb-4 text-sm">
+            Locked in on {lockedAt.toLocaleString()} — you can keep changing it until the deadline.
+          </p>
+        )}
         <PredictionBoard
           seasonId={season.id}
           initialTeams={initialTeams}

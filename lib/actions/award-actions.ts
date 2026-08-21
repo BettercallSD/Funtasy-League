@@ -46,13 +46,8 @@ export async function setAward(seasonId: string, category: AwardCategory, valueI
     throw new Error("Predictions are closed for this season.");
   }
 
-  const existingPrediction = await prisma.prediction.findUnique({
-    where: { userId_seasonId: { userId, seasonId: values.seasonId } },
-  });
-  if (existingPrediction?.lockedAt) {
-    throw new Error("This prediction is already locked in and can't be edited.");
-  }
-
+  // Editable as many times as the user wants before the deadline above,
+  // including after locking in the table once — no separate per-award lock.
   let data: { playerId: string | null; teamId: string | null };
 
   if (PLAYER_CATEGORIES.has(values.category)) {

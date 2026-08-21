@@ -120,9 +120,12 @@ If still tied, they're shown tied — no further tiebreak.
 
 One global lock date per season, admin-set (not hardcoded), intended to be set to that season's
 earliest-starting league's kickoff at minimum, and no later than that league finishing its first
-full matchweek. After lock, no predictions (new or edited) are accepted for that season. If someone
-signs up after the lock has passed, they've missed the competitive window for that season entirely
-— they can still use guest mode, just not the ranked one.
+full matchweek. Before that date, a user can edit their table order and award picks — and click
+"Lock in" — as many times as they want; locking in isn't a one-time, irreversible action, it just
+marks the prediction as a real (non-draft) entry that counts if the season gets finalized. After
+the lock date, no predictions (new or edited) are accepted for that season. If someone signs up
+after the lock has passed, they've missed the competitive window for that season entirely — they
+can still use guest mode, just not the ranked one.
 
 ## Guest mode (no account required)
 

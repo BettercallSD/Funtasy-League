@@ -45,13 +45,9 @@ function assertCompleteAndValid(
 }
 
 async function upsertDraftEntries(userId: string, seasonId: string, teamIds: string[]) {
-  const existing = await prisma.prediction.findUnique({
-    where: { userId_seasonId: { userId, seasonId } },
-  });
-  if (existing?.lockedAt) {
-    throw new Error("This prediction is already locked in and can't be edited.");
-  }
-
+  // Editable as many times as the user wants, including after locking in
+  // once — the season's predictionLockAt deadline (checked by both callers
+  // below) is the only real cutoff.
   const prediction = await prisma.prediction.upsert({
     where: { userId_seasonId: { userId, seasonId } },
     update: {},
