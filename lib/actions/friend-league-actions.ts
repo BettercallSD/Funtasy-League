@@ -98,18 +98,3 @@ export async function removeMember(friendLeagueId: string, memberUserId: string)
 
   revalidatePath(`/friend-leagues/${friendLeagueId}`);
 }
-
-export async function regenerateInviteCode(friendLeagueId: string) {
-  const userId = await getSessionUserId();
-
-  const friendLeague = await prisma.friendLeague.findUnique({ where: { id: friendLeagueId } });
-  if (!friendLeague) throw new Error("Friend league not found.");
-  if (friendLeague.creatorId !== userId) {
-    throw new Error("Only the creator can regenerate the invite link.");
-  }
-
-  const inviteCode = await generateUniqueInviteCode();
-  await prisma.friendLeague.update({ where: { id: friendLeagueId }, data: { inviteCode } });
-
-  revalidatePath(`/friend-leagues/${friendLeagueId}`);
-}

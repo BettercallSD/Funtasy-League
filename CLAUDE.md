@@ -144,7 +144,7 @@ signs up after the lock has passed, they've missed the competitive window for th
 
 - **Private friend leagues**: creator picks which season(s) the league covers at creation time.
   Points are summed only across that agreed scope, so members are always compared like-for-like.
-  Invite via a shareable link with a short code; creator can remove members or regenerate the link
-  to invalidate old invites.
+  Invite via a shareable link with a short code, permanent for the life of the league (no
+  regenerate option — the code stays the same); creator can remove members. No member cap.
 - **Public leaderboards**: one per league per season (never combined across leagues), ranking every
   locked, non-guest prediction for that league-season.

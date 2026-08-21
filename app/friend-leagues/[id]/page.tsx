@@ -7,7 +7,7 @@ import { formatSeasonYear } from "@/lib/format-season";
 import { getFriendLeagueScores } from "@/lib/friend-league-leaderboard";
 import { computeRanks } from "@/lib/rank-predictions";
 import { getMedalEmoji } from "@/lib/medals";
-import { removeMember, regenerateInviteCode } from "@/lib/actions/friend-league-actions";
+import { removeMember } from "@/lib/actions/friend-league-actions";
 
 export default async function FriendLeagueDetailPage({
   params,
@@ -65,14 +65,6 @@ export default async function FriendLeagueDetailPage({
             Invite link
           </p>
           <p className="font-display mt-1 text-sm break-all">{inviteUrl}</p>
-          <form action={regenerateInviteCode.bind(null, friendLeague.id)} className="mt-2">
-            <button
-              type="submit"
-              className="border-bk-border rounded-full border px-3 py-1 text-xs font-semibold"
-            >
-              Regenerate link
-            </button>
-          </form>
         </div>
       )}
 
