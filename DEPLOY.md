@@ -88,9 +88,11 @@ domain until you add it.
 
 Back in Vercel, click **Deploy**. First deploy will:
 
-- Run `npm run build`, which runs `prisma generate` as part of `postinstall` (check
-  `package.json`/`prisma.config.ts` if this ever changes — it should just work since the schema
-  is already committed).
+- Run `npm install`, which triggers `package.json`'s `postinstall` script (`prisma generate`) —
+  this is required, not automatic: without it the build fails with `Module not found: Can't
+resolve '@/lib/generated/prisma/...'` for every file that imports the generated client, since
+  that folder is gitignored and only ever exists after `prisma generate` runs. Verified locally by
+  deleting `lib/generated/prisma` and running `npm install && npm run build` from scratch.
 - **Does not** run migrations automatically — see next step.
 
 ## 7. Run migrations against the production database
