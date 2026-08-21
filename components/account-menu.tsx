@@ -20,16 +20,16 @@ export function AccountMenu({ session }: { session: Session | null }) {
   const { name, image } = session.user;
 
   return (
-    <details className="group relative">
-      <summary className="hover:bg-bk-surface-raised flex cursor-pointer list-none items-center gap-2 rounded-full py-1 pr-3 pl-1">
+    <details className="group relative shrink-0">
+      <summary className="hover:bg-bk-surface-raised flex cursor-pointer list-none items-center gap-2 rounded-full py-1 pr-2 pl-1 sm:pr-3">
         {image ? (
           <Image src={image} alt="" width={28} height={28} className="rounded-full" />
         ) : (
-          <span className="bg-bk-surface-raised flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold">
+          <span className="bg-bk-surface-raised flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
             {name?.[0]?.toUpperCase() ?? "?"}
           </span>
         )}
-        <span className="text-bk-text-secondary group-hover:text-bk-text text-sm font-medium">
+        <span className="text-bk-text-secondary group-hover:text-bk-text hidden max-w-24 truncate text-sm font-medium sm:inline">
           {name}
         </span>
       </summary>

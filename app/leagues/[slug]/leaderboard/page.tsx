@@ -92,30 +92,32 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ sl
         </p>
       ) : (
         <div className="border-bk-border mt-6 overflow-hidden rounded-lg border">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="bg-bk-surface text-bk-text-secondary text-left text-xs tracking-wide uppercase">
-                <th className="px-4 py-3">Rank</th>
-                <th className="px-4 py-3">Predictor</th>
-                <th className="px-4 py-3 text-right">Exact bonuses</th>
-                <th className="px-4 py-3 text-right">Score</th>
-              </tr>
-            </thead>
-            <tbody className="divide-bk-border divide-y">
-              {ranked.map((entry) => (
-                <tr key={entry.id} className="bg-bk-surface">
-                  <td className="font-display px-4 py-3 tabular-nums">
-                    {getMedalEmoji(entry.rank) ?? entry.rank}
-                  </td>
-                  <td className="px-4 py-3">{entry.userName}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{entry.exactBonusCount}</td>
-                  <td className="font-display px-4 py-3 text-right font-semibold tabular-nums">
-                    {entry.score}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[420px] border-collapse text-sm">
+              <thead>
+                <tr className="bg-bk-surface text-bk-text-secondary text-left text-xs tracking-wide uppercase">
+                  <th className="px-4 py-3">Rank</th>
+                  <th className="px-4 py-3">Predictor</th>
+                  <th className="px-4 py-3 text-right">Exact bonuses</th>
+                  <th className="px-4 py-3 text-right">Score</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-bk-border divide-y">
+                {ranked.map((entry) => (
+                  <tr key={entry.id} className="bg-bk-surface">
+                    <td className="font-display px-4 py-3 tabular-nums">
+                      {getMedalEmoji(entry.rank) ?? entry.rank}
+                    </td>
+                    <td className="px-4 py-3">{entry.userName}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{entry.exactBonusCount}</td>
+                    <td className="font-display px-4 py-3 text-right font-semibold tabular-nums">
+                      {entry.score}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </main>

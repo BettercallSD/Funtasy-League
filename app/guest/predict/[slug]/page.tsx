@@ -15,41 +15,13 @@ export default async function GuestPredictPage({ params }: { params: Promise<{ s
 
   // Guests can predict "any time" (CLAUDE.md) — no predictionLockAt gating,
   // unlike the authenticated flow. Just needs a season that isn't over yet.
-  //
-  // TEMPORARY diagnostic try/catch: production was throwing an opaque
-  // "Error: [object Object]" from deep inside Next's own RSC internals,
-  // meaning whatever actually failed got mangled before any of our own
-  // logging could see it. Catching it here — before React's Flight
-  // serializer is involved at all — surfaces the real error directly on
-  // the page so we can see whether it's the DB query or something else
-  // downstream. Remove once the real cause is found.
-  let season;
-  try {
-    season = await prisma.season.findFirst({
-      where: { league: { slug }, status: { not: "FINALIZED" } },
-      orderBy: { year: "desc" },
-      include: {
-        seasonTeams: { include: { team: true }, orderBy: { team: { name: "asc" } } },
-      },
-    });
-  } catch (err) {
-    const details =
-      err instanceof Error
-        ? `${err.name}: ${err.message}\n\n${err.stack}`
-        : (() => {
-            try {
-              return JSON.stringify(err, Object.getOwnPropertyNames(err ?? {}), 2);
-            } catch {
-              return String(err);
-            }
-          })();
-    return (
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
-        <h1 className="font-display text-xl font-bold">DEBUG: season query threw</h1>
-        <pre className="mt-4 overflow-x-auto text-xs whitespace-pre-wrap">{details}</pre>
-      </main>
-    );
-  }
+  const season = await prisma.season.findFirst({
+    where: { league: { slug }, status: { not: "FINALIZED" } },
+    orderBy: { year: "desc" },
+    include: {
+      seasonTeams: { include: { team: true }, orderBy: { team: { name: "asc" } } },
+    },
+  });
 
   if (!season || season.seasonTeams.length === 0) {
     return (
@@ -84,27 +56,7 @@ export default async function GuestPredictPage({ params }: { params: Promise<{ s
     crestUrl: seasonTeam.team.crestUrl,
   }));
 
-  let popular;
-  try {
-    popular = await getPopularPlayerPicks(season.id);
-  } catch (err) {
-    const details =
-      err instanceof Error
-        ? `${err.name}: ${err.message}\n\n${err.stack}`
-        : (() => {
-            try {
-              return JSON.stringify(err, Object.getOwnPropertyNames(err ?? {}), 2);
-            } catch {
-              return String(err);
-            }
-          })();
-    return (
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
-        <h1 className="font-display text-xl font-bold">DEBUG: getPopularPlayerPicks threw</h1>
-        <pre className="mt-4 overflow-x-auto text-xs whitespace-pre-wrap">{details}</pre>
-      </main>
-    );
-  }
+  const popular = await getPopularPlayerPicks(season.id);
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
@@ -119,16 +71,17 @@ export default async function GuestPredictPage({ params }: { params: Promise<{ s
         </h1>
       </div>
       <p className="text-bk-text-secondary mt-3 text-sm">
-        This won&apos;t count on any leaderboard, but you&apos;ll get a shareable result card. Want
-        it to count for real?{" "}
+        Heads up — this won&apos;t be saved to an account. You&apos;ll get a link to your result at
+        the end, but if you lose it, it&apos;s gone for good.{" "}
         <Link href={`/predict/${slug}`} className={`font-medium ${accent.text}`}>
-          Sign in and predict
+          Sign in first
         </Link>{" "}
-        instead.
+        if you want it saved to come back to later — or to actually compete for real.
       </p>
 
       <div className="mt-6">
         <GuestPredictionForm
+          slug={slug}
           seasonId={season.id}
           initialTeams={initialTeams}
           awardTeams={awardTeams}

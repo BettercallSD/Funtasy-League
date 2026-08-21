@@ -8,6 +8,9 @@ export interface LeagueConfig {
   slug: LeagueSlug;
   name: string;
   shortName: string;
+  /** Competition emblem, shown in the nav instead of shortName text — same
+   * football-data.org source already trusted for club crests. */
+  logoUrl: string;
   /** Tailwind color token defined in app/globals.css, e.g. "bk-premier-league" */
   accentToken: string;
   /** Same color as accentToken, as a raw hex — mirrors app/globals.css, used to seed League.accentColor */
@@ -19,6 +22,7 @@ export const LEAGUES: LeagueConfig[] = [
     slug: "premier-league",
     name: "Premier League",
     shortName: "PL",
+    logoUrl: "https://crests.football-data.org/PL.png",
     accentToken: "bk-premier-league",
     accentHex: "#7c5cfc",
   },
@@ -26,6 +30,7 @@ export const LEAGUES: LeagueConfig[] = [
     slug: "la-liga",
     name: "La Liga",
     shortName: "La Liga",
+    logoUrl: "https://crests.football-data.org/laliga.png",
     accentToken: "bk-la-liga",
     accentHex: "#ff6b4a",
   },
@@ -33,6 +38,7 @@ export const LEAGUES: LeagueConfig[] = [
     slug: "serie-a",
     name: "Serie A",
     shortName: "Serie A",
+    logoUrl: "https://crests.football-data.org/c111.png",
     accentToken: "bk-serie-a",
     accentHex: "#22c58b",
   },
@@ -40,6 +46,7 @@ export const LEAGUES: LeagueConfig[] = [
     slug: "bundesliga",
     name: "Bundesliga",
     shortName: "BL",
+    logoUrl: "https://crests.football-data.org/BL1.png",
     accentToken: "bk-bundesliga",
     accentHex: "#e5484d",
   },
@@ -47,6 +54,7 @@ export const LEAGUES: LeagueConfig[] = [
     slug: "ligue-1",
     name: "Ligue 1",
     shortName: "L1",
+    logoUrl: "https://crests.football-data.org/FL1.png",
     accentToken: "bk-ligue-1",
     accentHex: "#3e7bfa",
   },

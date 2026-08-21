@@ -24,8 +24,9 @@ export default async function LeaguePage({ params }: { params: Promise<{ slug: s
 
       <div className="border-bk-border bg-bk-surface mt-8 rounded-lg border p-8 text-center">
         <p className="text-bk-text-secondary">
-          Drag the table into your predicted final order, then track how you stack up against
-          everyone else.
+          Drag every club into the order you think they&apos;ll finish — champion to relegated,
+          nothing skipped — plus six end-of-season awards. Lock it in, then spend the season finding
+          out if you actually called it or just talk a good game.
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
           <Link
