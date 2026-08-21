@@ -33,22 +33,6 @@ export default async function NewFriendLeaguePage() {
           />
         </div>
 
-        <div>
-          <label className="text-bk-text-secondary text-sm font-medium" htmlFor="maxMembers">
-            Max members
-          </label>
-          <input
-            id="maxMembers"
-            name="maxMembers"
-            type="number"
-            min={2}
-            max={500}
-            defaultValue={20}
-            required
-            className="border-bk-border bg-bk-bg mt-1 w-full rounded-md border px-3 py-2 text-sm"
-          />
-        </div>
-
         <fieldset>
           <legend className="text-bk-text-secondary text-sm font-medium">Seasons</legend>
           {seasons.length === 0 && (

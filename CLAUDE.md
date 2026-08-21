@@ -73,8 +73,8 @@ template software.
 - `PredictionAward` — predictionId, category enum, value (playerId or teamId depending on category)
 - `SeasonResult` — the finalized ground truth once a season ends: final table positions + award
   winners, used to score every prediction against
-- `FriendLeague` — creatorId, name, inviteCode, scoped to one or more Season ids chosen at creation,
-  maxMembers
+- `FriendLeague` — creatorId, name, inviteCode, scoped to one or more Season ids chosen at creation.
+  No member cap — any number of people can join.
 - `FriendLeagueMember`
 
 ## Scoring rules (exactly this — keep it simple, this is final)

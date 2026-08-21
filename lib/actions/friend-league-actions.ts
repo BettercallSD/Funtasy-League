@@ -23,7 +23,6 @@ export async function createFriendLeague(formData: FormData) {
 
   const values = parseOrThrow(createFriendLeagueSchema, {
     name: formData.get("name"),
-    maxMembers: formData.get("maxMembers"),
     seasonIds: formData.getAll("seasonIds"),
   });
 
@@ -38,7 +37,6 @@ export async function createFriendLeague(formData: FormData) {
     data: {
       creatorId: userId,
       name: values.name,
-      maxMembers: values.maxMembers,
       inviteCode,
       seasons: { create: values.seasonIds.map((seasonId) => ({ seasonId })) },
       members: { create: { userId } },
@@ -62,7 +60,6 @@ export async function joinFriendLeague(inviteCode: string) {
 
   const friendLeague = await prisma.friendLeague.findUnique({
     where: { inviteCode },
-    include: { _count: { select: { members: true } } },
   });
   if (!friendLeague) {
     throw new Error("That invite link isn't valid — it may have been regenerated.");
@@ -73,10 +70,6 @@ export async function joinFriendLeague(inviteCode: string) {
   });
   if (alreadyMember) {
     redirect(`/friend-leagues/${friendLeague.id}`);
-  }
-
-  if (friendLeague._count.members >= friendLeague.maxMembers) {
-    throw new Error("This friend league is full.");
   }
 
   await prisma.friendLeagueMember.create({

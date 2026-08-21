@@ -328,7 +328,6 @@ model FriendLeague {
 
   name       String
   inviteCode String @unique
-  maxMembers Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

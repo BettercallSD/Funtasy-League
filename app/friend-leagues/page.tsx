@@ -43,8 +43,8 @@ export default async function FriendLeaguesPage() {
               >
                 <span className="font-display font-semibold">{membership.friendLeague.name}</span>
                 <span className="text-bk-text-secondary text-xs">
-                  {membership.friendLeague._count.members}/{membership.friendLeague.maxMembers}{" "}
-                  members
+                  {membership.friendLeague._count.members} member
+                  {membership.friendLeague._count.members === 1 ? "" : "s"}
                 </span>
               </Link>
             </li>

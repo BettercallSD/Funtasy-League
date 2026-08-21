@@ -24,7 +24,6 @@ export default async function JoinFriendLeaguePage({
   if (!friendLeague) notFound();
 
   const isAlreadyMember = friendLeague.members.length > 0;
-  const isFull = friendLeague._count.members >= friendLeague.maxMembers;
 
   const action = joinFriendLeague.bind(null, code);
   const scopeLabel = friendLeague.seasons
@@ -39,13 +38,12 @@ export default async function JoinFriendLeaguePage({
       <h1 className="font-display text-2xl font-bold">{friendLeague.name}</h1>
       <p className="text-bk-text-secondary mt-2 text-sm">Scoped to: {scopeLabel}</p>
       <p className="text-bk-text-secondary mt-1 text-xs">
-        {friendLeague._count.members}/{friendLeague.maxMembers} members
+        {friendLeague._count.members} member
+        {friendLeague._count.members === 1 ? "" : "s"}
       </p>
 
       {isAlreadyMember ? (
         <p className="text-bk-text-secondary mt-6 text-sm">You&apos;re already in this league.</p>
-      ) : isFull ? (
-        <p className="text-bk-text-secondary mt-6 text-sm">This league is full.</p>
       ) : (
         <form action={action} className="mt-6">
           <button

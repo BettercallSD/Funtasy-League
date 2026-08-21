@@ -114,7 +114,7 @@ export default async function FriendLeagueDetailPage({
 
       <section className="mt-8">
         <h2 className="font-display text-lg font-semibold">
-          Members ({friendLeague.members.length}/{friendLeague.maxMembers})
+          Members ({friendLeague.members.length})
         </h2>
         <ul className="border-bk-border divide-bk-border mt-3 divide-y rounded-lg border">
           {friendLeague.members.map((member) => (
