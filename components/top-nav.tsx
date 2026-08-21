@@ -3,8 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Session } from "next-auth";
-import { LEAGUES, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
+import { LEAGUES, LEAGUE_ACCENT_CLASSES, type LeagueSlug } from "@/lib/leagues";
 import { AccountMenu } from "@/components/account-menu";
+
+// These two competitions' emblems are dark/monochrome and disappear against
+// the dark nav background — give just those a light badge behind them so
+// they're actually visible. The other three already have enough color.
+const NEEDS_LIGHT_BADGE = new Set<LeagueSlug>(["premier-league", "ligue-1"]);
 
 export function TopNav({ session }: { session: Session | null }) {
   const pathname = usePathname();
@@ -33,8 +38,20 @@ export function TopNav({ session }: { session: Session | null }) {
                   isActive ? accent.border : "border-transparent opacity-60 hover:opacity-100"
                 }`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element -- external competition emblem, not in next/image's remote allowlist */}
-                <img src={league.logoUrl} alt={league.name} className="h-6 w-6 object-contain" />
+                <span
+                  className={
+                    NEEDS_LIGHT_BADGE.has(league.slug)
+                      ? "flex h-6 w-6 items-center justify-center rounded-full bg-white p-1"
+                      : "flex h-6 w-6 items-center justify-center"
+                  }
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- external competition emblem, not in next/image's remote allowlist */}
+                  <img
+                    src={league.logoUrl}
+                    alt={league.name}
+                    className="h-full w-full object-contain"
+                  />
+                </span>
               </Link>
             );
           })}
