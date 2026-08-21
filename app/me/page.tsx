@@ -3,12 +3,13 @@ import { requireUser } from "@/lib/require-user";
 import { prisma } from "@/lib/prisma";
 import { formatSeasonYear } from "@/lib/format-season";
 import { computeAccuracy, parseScoreBreakdown } from "@/lib/prediction-accuracy";
+import { getCurrentSeasonYear } from "@/lib/current-season-year";
 import { UsernameForm } from "@/components/username-form";
 
 export default async function MyPredictionsPage() {
   const session = await requireUser("/me");
 
-  const [predictions, claimedGuestPrediction, currentUser] = await Promise.all([
+  const [predictions, claimedGuestPrediction, currentUser, currentSeasonYear] = await Promise.all([
     prisma.prediction.findMany({
       where: { userId: session.user.id, isGuest: false },
       include: { season: { include: { league: true } } },
@@ -19,13 +20,12 @@ export default async function MyPredictionsPage() {
       include: { season: { include: { league: true } } },
     }),
     prisma.user.findUnique({ where: { id: session.user.id } }),
+    getCurrentSeasonYear(),
   ]);
 
-  const now = new Date();
-  const usernameLocked = predictions.some(
-    (prediction) =>
-      prediction.season.status !== "FINALIZED" && prediction.season.predictionLockAt <= now,
-  );
+  // One username change allowed per season-year overall, not deadline-gated.
+  const usernameLocked =
+    currentSeasonYear !== null && currentUser?.usernameChangedForYear === currentSeasonYear;
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-12">
@@ -41,8 +41,8 @@ export default async function MyPredictionsPage() {
         </p>
         {usernameLocked ? (
           <p className="text-bk-text-secondary mt-2 text-sm italic">
-            You can&apos;t change this while a season you&apos;ve entered is in progress —
-            you&apos;ll be able to again once it&apos;s finalized.
+            You&apos;ve already changed your username this season — you can change it again once
+            next season starts.
           </p>
         ) : (
           <UsernameForm currentUsername={currentUser?.username ?? null} />

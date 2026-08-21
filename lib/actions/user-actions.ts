@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parseOrThrow } from "@/lib/parse-or-throw";
 import { usernameSchema } from "@/lib/validation/username";
+import { getCurrentSeasonYear } from "@/lib/current-season-year";
 
 export async function setUsername(username: string) {
   const session = await auth();
@@ -14,24 +15,18 @@ export async function setUsername(username: string) {
 
   const value = parseOrThrow(usernameSchema, username);
 
-  // Changing your username while you're actively competing in a season
-  // (locked in, not yet finalized) would confuse anyone looking at that
-  // season's leaderboard mid-competition — so it's only allowed before a
-  // season you've entered starts, or after it's finalized. Scoped to
-  // seasons this user actually has a real (non-guest) prediction in, not
-  // every season globally — a season you've never touched shouldn't block
-  // you just because it happens to be in progress.
-  const inProgressPrediction = await prisma.prediction.findFirst({
-    where: {
-      userId: session.user.id,
-      isGuest: false,
-      season: { status: { not: "FINALIZED" }, predictionLockAt: { lte: new Date() } },
-    },
-  });
-  if (inProgressPrediction) {
-    throw new Error(
-      "You can't change your username while a season you've entered is in progress — you'll be able to again once it's finalized.",
-    );
+  // One username change per season-year overall (every league's current
+  // season year counts as one shared cycle) — not deadline-gated, just
+  // capped at one use. currentYear is null when every season is finalized
+  // (or none exist), in which case there's no cycle to cap against.
+  const currentYear = await getCurrentSeasonYear();
+  if (currentYear !== null) {
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (user?.usernameChangedForYear === currentYear) {
+      throw new Error(
+        "You've already changed your username this season — you can change it again once next season starts.",
+      );
+    }
   }
 
   // Case-insensitive check up front for a friendly error message — the
@@ -47,7 +42,10 @@ export async function setUsername(username: string) {
   try {
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { username: value },
+      data: {
+        username: value,
+        ...(currentYear !== null ? { usernameChangedForYear: currentYear } : {}),
+      },
     });
   } catch (error) {
     if (
