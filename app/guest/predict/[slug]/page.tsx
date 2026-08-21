@@ -15,13 +15,41 @@ export default async function GuestPredictPage({ params }: { params: Promise<{ s
 
   // Guests can predict "any time" (CLAUDE.md) — no predictionLockAt gating,
   // unlike the authenticated flow. Just needs a season that isn't over yet.
-  const season = await prisma.season.findFirst({
-    where: { league: { slug }, status: { not: "FINALIZED" } },
-    orderBy: { year: "desc" },
-    include: {
-      seasonTeams: { include: { team: true }, orderBy: { team: { name: "asc" } } },
-    },
-  });
+  //
+  // TEMPORARY diagnostic try/catch: production was throwing an opaque
+  // "Error: [object Object]" from deep inside Next's own RSC internals,
+  // meaning whatever actually failed got mangled before any of our own
+  // logging could see it. Catching it here — before React's Flight
+  // serializer is involved at all — surfaces the real error directly on
+  // the page so we can see whether it's the DB query or something else
+  // downstream. Remove once the real cause is found.
+  let season;
+  try {
+    season = await prisma.season.findFirst({
+      where: { league: { slug }, status: { not: "FINALIZED" } },
+      orderBy: { year: "desc" },
+      include: {
+        seasonTeams: { include: { team: true }, orderBy: { team: { name: "asc" } } },
+      },
+    });
+  } catch (err) {
+    const details =
+      err instanceof Error
+        ? `${err.name}: ${err.message}\n\n${err.stack}`
+        : (() => {
+            try {
+              return JSON.stringify(err, Object.getOwnPropertyNames(err ?? {}), 2);
+            } catch {
+              return String(err);
+            }
+          })();
+    return (
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
+        <h1 className="font-display text-xl font-bold">DEBUG: season query threw</h1>
+        <pre className="mt-4 overflow-x-auto text-xs whitespace-pre-wrap">{details}</pre>
+      </main>
+    );
+  }
 
   if (!season || season.seasonTeams.length === 0) {
     return (
@@ -56,7 +84,27 @@ export default async function GuestPredictPage({ params }: { params: Promise<{ s
     crestUrl: seasonTeam.team.crestUrl,
   }));
 
-  const popular = await getPopularPlayerPicks(season.id);
+  let popular;
+  try {
+    popular = await getPopularPlayerPicks(season.id);
+  } catch (err) {
+    const details =
+      err instanceof Error
+        ? `${err.name}: ${err.message}\n\n${err.stack}`
+        : (() => {
+            try {
+              return JSON.stringify(err, Object.getOwnPropertyNames(err ?? {}), 2);
+            } catch {
+              return String(err);
+            }
+          })();
+    return (
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
+        <h1 className="font-display text-xl font-bold">DEBUG: getPopularPlayerPicks threw</h1>
+        <pre className="mt-4 overflow-x-auto text-xs whitespace-pre-wrap">{details}</pre>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
