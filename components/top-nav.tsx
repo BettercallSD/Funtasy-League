@@ -16,7 +16,7 @@ export function TopNav({ session }: { session: Session | null }) {
           href="/"
           className="font-display text-bk-text shrink-0 text-lg font-bold tracking-tight"
         >
-          Ball Knowledge
+          Funtasy League
         </Link>
         <nav className="flex h-full flex-1 items-center gap-1 overflow-x-auto">
           {LEAGUES.map((league) => {

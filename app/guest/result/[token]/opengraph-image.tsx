@@ -29,7 +29,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
           fontSize: 48,
         }}
       >
-        Ball Knowledge
+        Funtasy League
       </div>,
       size,
     );
@@ -59,7 +59,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
         {prediction.season.league.name} · {prediction.submittedLabel}
       </div>
       <div style={{ display: "flex", fontSize: 52, fontWeight: 700, marginTop: 16 }}>
-        My Ball Knowledge Prediction
+        My Funtasy League Prediction
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 44 }}>
         {prediction.tableEntries.map((entry) => (

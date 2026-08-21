@@ -108,7 +108,7 @@ export default async function FriendLeagueRecapPage({
 
       {isChampion ? (
         <h1 className="font-display mt-2 text-3xl font-bold">
-          🏆 {session.user.name} IS THE BALL KNOWLEDGE CHAMPION
+          🏆 {session.user.name} IS THE FUNTASY LEAGUE CHAMPION
         </h1>
       ) : medal ? (
         <h1 className="font-display mt-2 text-3xl font-bold">

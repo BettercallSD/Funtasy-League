@@ -22,7 +22,7 @@ export default async function SignInPage({
 
   return (
     <main className="mx-auto flex max-w-md flex-1 flex-col items-center justify-center px-4 py-16 text-center">
-      <h1 className="font-display text-2xl font-bold">Sign in to Ball Knowledge</h1>
+      <h1 className="font-display text-2xl font-bold">Sign in to Funtasy League</h1>
       <p className="text-bk-text-secondary mt-2">
         You need a Google account to lock in a real prediction.
       </p>

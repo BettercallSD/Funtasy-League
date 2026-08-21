@@ -16,8 +16,8 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "Ball Knowledge",
-  description: "Let's test your ball knowledge.",
+  title: "Funtasy League",
+  description: "Let's test your football knowledge.",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

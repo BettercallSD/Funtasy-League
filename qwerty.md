@@ -1,4 +1,4 @@
-# Ball Knowledge — Progress Status
+# Funtasy League — Progress Status
 
 Written as a recovery reference in case Claude Code needs to be reinstalled and a fresh
 session needs to pick this project back up. Read this alongside `CLAUDE.md` (the persistent
@@ -94,7 +94,7 @@ What's actually in the code, verified by reading every file involved:
   `computeRanks` (`lib/rank-predictions.ts`) + `getMedalEmoji`.
 - Season recap pages exist for both scopes — `app/leagues/[slug]/recap/page.tsx` and
   `app/friend-leagues/[id]/recap/page.tsx` — both give a #1 finish the full "🏆 [NAME] IS THE
-  BALL KNOWLEDGE CHAMPION" treatment, a medal + rank for 2nd/3rd, plain rank otherwise, plus
+  FUNTASY LEAGUE CHAMPION" treatment, a medal + rank for 2nd/3rd, plain rank otherwise, plus
   total score and an "X/Y correct" accuracy stat (`lib/prediction-accuracy.ts`).
 - `/me` (`app/me/page.tsx`) was extended with per-prediction accuracy and a "See recap" link for
   finalized seasons — this was the "may just need polish" item from the original Phase 8 scope,

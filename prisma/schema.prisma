@@ -1,4 +1,4 @@
-// Prisma schema for Ball Knowledge.
+// Prisma schema for Funtasy League.
 // See CLAUDE.md "Core data model" for the source of truth on why these
 // fields exist (especially the season-versioned config on Season, and the
 // guest-prediction boundary on Prediction/User).

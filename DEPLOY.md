@@ -1,4 +1,4 @@
-# Deploying Ball Knowledge to Vercel
+# Deploying Funtasy League to Vercel
 
 This app is built to deploy on Vercel's free tier with Neon Postgres, Google OAuth,
 football-data.org, and Cloudflare Turnstile — all of which are already set up in the local
@@ -25,7 +25,7 @@ npm run build
 Vercel deploys from a Git repo. If this repo isn't on GitHub yet:
 
 ```bash
-git remote add origin https://github.com/<your-username>/ball-knowledge.git
+git remote add origin https://github.com/<your-username>/funtasy-league.git
 git push -u origin master
 ```
 
@@ -36,7 +36,7 @@ works.)
 
 1. Go to [vercel.com/new](https://vercel.com/new) and sign in (GitHub login is easiest since
    that's where the repo lives).
-2. Import the `ball-knowledge` repo. Vercel auto-detects Next.js — leave the build settings as
+2. Import the `funtasy-league` repo. Vercel auto-detects Next.js — leave the build settings as
    default (`npm run build`, output directory auto-detected).
 3. **Don't click Deploy yet** — add the environment variables first (next section), since the
    first build will fail without `DATABASE_URL` etc.
@@ -52,7 +52,7 @@ using your real values from the local `.env`:
 | `GOOGLE_CLIENT_ID`               | Same as local.                                                                                                                    |
 | `GOOGLE_CLIENT_SECRET`           | Same as local.                                                                                                                    |
 | `NEXTAUTH_SECRET`                | Same as local, **or** generate a fresh one for prod with `npx auth secret`.                                                       |
-| `NEXTAUTH_URL`                   | **Must change** — set to your production URL, e.g. `https://ball-knowledge.vercel.app` (or your custom domain once you have one). |
+| `NEXTAUTH_URL`                   | **Must change** — set to your production URL, e.g. `https://funtasy-league.vercel.app` (or your custom domain once you have one). |
 | `FOOTBALL_DATA_API_KEY`          | Same as local.                                                                                                                    |
 | `CRON_SECRET`                    | Same as local — this is what Vercel Cron sends as a Bearer token; must match what `/api/cron/sync-standings` expects.             |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Same as local.                                                                                                                    |

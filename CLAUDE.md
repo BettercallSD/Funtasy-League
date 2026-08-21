@@ -1,13 +1,13 @@
-# Project: Ball Knowledge
+# Project: Funtasy League
 
 A football prediction game covering Europe's top 5 leagues (Premier League, La Liga, Serie A,
 Bundesliga, Ligue 1). Users predict the full final league table (via drag-and-drop) plus six award
 categories, compete with friends in private leagues, and appear on public per-league leaderboards.
-"Ball Knowledge" is the brand voice — playful, football-fan energy, never corporate. Tagline
-territory: "Let's test your ball knowledge." Bragging rights at season end are just medals for the
-top 3 finishers (🥇🥈🥉) within each scope (a public league-season leaderboard, or a friend
-league) — no named tiers beyond that. A #1 finish still gets the full "🏆 [NAME] IS THE BALL
-KNOWLEDGE CHAMPION" treatment on their personal recap page. Lean into this voice in microcopy,
+"Funtasy League" is the brand voice — playful, football-fan energy, never corporate. Tagline
+territory: "Let's test your football knowledge." Bragging rights at season end are just medals for
+the top 3 finishers (🥇🥈🥉) within each scope (a public league-season leaderboard, or a friend
+league) — no named tiers beyond that. A #1 finish still gets the full "🏆 [NAME] IS THE FUNTASY
+LEAGUE CHAMPION" treatment on their personal recap page. Lean into this voice in microcopy,
 empty states, and loading messages — it's the main thing that keeps this from feeling like generic
 template software.
 
