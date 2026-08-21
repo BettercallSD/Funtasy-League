@@ -71,10 +71,10 @@ export async function submitGuestPrediction(input: unknown) {
       throw new Error("One of the selected award players isn't in this season's league.");
     }
   }
-  if (values.emergingPlayerPlayerId) {
-    const player = await prisma.player.findUnique({ where: { id: values.emergingPlayerPlayerId } });
+  if (values.youngPlayerPlayerId) {
+    const player = await prisma.player.findUnique({ where: { id: values.youngPlayerPlayerId } });
     if (!player || getAge(player.dateOfBirth) >= 23) {
-      throw new Error("Emerging Player must be under 23.");
+      throw new Error("Young Player of the Season must be under 23.");
     }
   }
   const awardTeamIds = awardEntries

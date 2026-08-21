@@ -114,10 +114,15 @@ model SeasonTeam {
 }
 
 model Player {
-  id          String   @id @default(cuid())
-  name        String
-  dateOfBirth DateTime
-  position    String?
+  id             String @id @default(cuid())
+  name           String
+  // Lowercased, diacritic-stripped copy of name (see lib/normalize-name.ts) —
+  // lets search match "mbappe" against "Mbappé" via Prisma's query builder
+  // instead of a raw-SQL unaccent() call, which CLAUDE.md's security rules
+  // forbid.
+  normalizedName String
+  dateOfBirth    DateTime
+  position       String?
 
   currentTeam   Team?   @relation(fields: [currentTeamId], references: [id], onDelete: SetNull)
   currentTeamId String?
@@ -130,6 +135,7 @@ model Player {
   topScorerSnapshots SeasonSnapshot[]    @relation("SnapshotTopScorer")
 
   @@index([name])
+  @@index([normalizedName])
 }
 
 // ---------------------------------------------------------------------------
@@ -221,9 +227,10 @@ model PredictionTableEntry {
 
 // One row per award category per prediction. Exactly one of playerId /
 // teamId is set, depending on whether `category` is a player-based award
-// (Golden Boot, Most Assists, Young Player, Emerging Player) or a
-// team-based award (Surprise Team, Disappointing Team) — enforced in the
-// Zod schema at the API boundary, not at the DB level.
+// (Golden Boot, Most Assists, Young Player, EMERGING_PLAYER — the enum value
+// is unchanged from an earlier naming, but this is the "Player of the
+// Season" category now) or a team-based award (Surprise Team, Disappointing
+// Team) — enforced in the Zod schema at the API boundary, not at the DB level.
 model PredictionAward {
   id           String        @id @default(cuid())
   prediction   Prediction    @relation(fields: [predictionId], references: [id], onDelete: Cascade)

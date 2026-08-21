@@ -11,11 +11,17 @@ export interface PlayerOption {
   crestUrl: string | null;
 }
 
+export interface PlayerPickerTeamOption {
+  id: string;
+  name: string;
+}
+
 export function PlayerPicker({
   seasonId,
   category,
   label,
   u23Only,
+  teams,
   popularPlayers,
   selected,
   disabled,
@@ -25,6 +31,8 @@ export function PlayerPicker({
   category: AwardCategory;
   label: string;
   u23Only?: boolean;
+  /** Lets the picker offer a "browse by club" dropdown alongside name search — for players whose name search doesn't surface (e.g. nickname spelling). */
+  teams?: PlayerPickerTeamOption[];
   popularPlayers: PlayerOption[];
   selected: PlayerOption | null;
   disabled: boolean;
@@ -32,6 +40,8 @@ export function PlayerPicker({
   onSelect?: (player: PlayerOption | null) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [teamId, setTeamId] = useState("");
+  const [isBrowseOpen, setIsBrowseOpen] = useState(false);
   const [results, setResults] = useState<PlayerOption[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -39,35 +49,43 @@ export function PlayerPicker({
   const [current, setCurrent] = useState(selected);
   const [error, setError] = useState<string | null>(null);
 
+  const hasQuery = query.trim().length > 0;
+
   useEffect(() => {
-    if (query.trim().length === 0) {
+    if (!hasQuery && !teamId) {
       return;
     }
     const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      setIsSearching(true);
-      const params = new URLSearchParams({
-        q: query,
-        u23Only: String(Boolean(u23Only)),
-        seasonId,
-      });
-      fetch(`/api/players/search?${params}`, { signal: controller.signal })
-        .then((res) => res.json())
-        .then((data: PlayerOption[]) => setResults(data))
-        .catch(() => {
-          // aborted or network error — ignore, the next keystroke retries
-        })
-        .finally(() => setIsSearching(false));
-    }, 250);
+    const timeout = setTimeout(
+      () => {
+        setIsSearching(true);
+        const params = new URLSearchParams({
+          q: query,
+          u23Only: String(Boolean(u23Only)),
+          seasonId,
+        });
+        if (teamId) params.set("teamId", teamId);
+        fetch(`/api/players/search?${params}`, { signal: controller.signal })
+          .then((res) => res.json())
+          .then((data: PlayerOption[]) => setResults(data))
+          .catch(() => {
+            // aborted or network error — ignore, the next keystroke retries
+          })
+          .finally(() => setIsSearching(false));
+      },
+      // Debounce keystrokes, but a club pick from the dropdown should list
+      // its roster immediately.
+      hasQuery ? 250 : 0,
+    );
     return () => {
       controller.abort();
       clearTimeout(timeout);
     };
-  }, [query, u23Only, seasonId]);
+  }, [query, hasQuery, teamId, u23Only, seasonId]);
 
-  // Derived rather than cleared inside the effect — an empty query has no
-  // results to show regardless of what the last fetch left in state.
-  const displayedResults = query.trim().length === 0 ? [] : results;
+  // Derived rather than cleared inside the effect — no query and no club
+  // picked means there's nothing to show regardless of stale fetch state.
+  const displayedResults = !hasQuery && !teamId ? [] : results;
 
   function choose(player: PlayerOption) {
     setError(null);
@@ -76,6 +94,8 @@ export function PlayerPicker({
       onSelect(player);
       setCurrent(player);
       setQuery("");
+      setTeamId("");
+      setIsBrowseOpen(false);
       setResults([]);
       return;
     }
@@ -85,6 +105,8 @@ export function PlayerPicker({
         await setAward(seasonId, category, player.id);
         setCurrent(player);
         setQuery("");
+        setTeamId("");
+        setIsBrowseOpen(false);
         setResults([]);
       } catch (submitError) {
         setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
@@ -123,16 +145,72 @@ export function PlayerPicker({
 
       {!disabled && !current && (
         <>
-          <input
-            type="text"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onFocus={() => setIsFocused(true)}
-            placeholder="Search players…"
-            className="border-bk-border bg-bk-bg mt-2 w-full rounded-md border px-3 py-2 text-sm"
-          />
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="text"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onFocus={() => setIsFocused(true)}
+              placeholder="Search players…"
+              className="border-bk-border bg-bk-bg w-full rounded-md border px-3 py-2 text-sm"
+            />
+            {(hasQuery || teamId) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  setTeamId("");
+                  setIsBrowseOpen(false);
+                  setResults([]);
+                }}
+                className="text-bk-text-secondary shrink-0 text-xs underline"
+              >
+                Clear
+              </button>
+            )}
+          </div>
 
-          {isFocused && query.trim().length === 0 && popularPlayers.length > 0 && (
+          {teams && teams.length > 0 && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setIsBrowseOpen((open) => {
+                    const next = !open;
+                    if (!next) {
+                      // Folding back up abandons any club pick too, so the
+                      // roster list actually goes away instead of lingering
+                      // under a closed toggle.
+                      setTeamId("");
+                      setResults([]);
+                    }
+                    return next;
+                  })
+                }
+                className="text-bk-text-secondary border-bk-border bg-bk-bg flex w-full items-center justify-between rounded-md border px-3 py-2 text-xs"
+              >
+                <span>Can&apos;t find them? Browse by club…</span>
+                <span aria-hidden="true">{isBrowseOpen ? "▲" : "▼"}</span>
+              </button>
+
+              {isBrowseOpen && (
+                <select
+                  value={teamId}
+                  onChange={(event) => setTeamId(event.target.value)}
+                  className="border-bk-border bg-bk-bg text-bk-text-secondary mt-2 w-full rounded-md border px-3 py-2 text-xs"
+                >
+                  <option value="">Choose a club…</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
+          {isFocused && !hasQuery && !teamId && popularPlayers.length > 0 && (
             <div className="mt-2">
               <p className="text-bk-text-muted text-xs">Popular picks among other predictors</p>
               <div className="mt-1 flex flex-wrap gap-2">
@@ -154,7 +232,7 @@ export function PlayerPicker({
           {isSearching && <p className="text-bk-text-secondary mt-1 text-xs">Searching…</p>}
 
           {displayedResults.length > 0 && (
-            <ul className="border-bk-border divide-bk-border mt-1 divide-y rounded-md border">
+            <ul className="border-bk-border divide-bk-border mt-1 max-h-64 divide-y overflow-y-auto rounded-md border">
               {displayedResults.map((player) => (
                 <li key={player.id}>
                   <button

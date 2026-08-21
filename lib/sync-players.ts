@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { fetchSquads, delay, COMPETITION_CODES } from "@/lib/football-data-api";
 import { matchTeamByName } from "@/lib/match-team-name";
+import { normalizeName } from "@/lib/normalize-name";
 import type { LeagueSlug } from "@/lib/leagues";
 import type { SyncResult } from "@/lib/sync-standings";
 
@@ -12,7 +13,7 @@ function isSupportedLeagueSlug(slug: string): slug is LeagueSlug {
 // season's league and upserts Player rows (name, dateOfBirth, position,
 // currentTeamId) — this is what makes award search/autocomplete cover the
 // real league roster instead of a small hand-picked fixture list. Players
-// without a dateOfBirth are skipped since the Emerging Player (U23) category
+// without a dateOfBirth are skipped since the Young Player of the Season (U23) category
 // depends on it.
 export async function syncPlayersForActiveSeasons(): Promise<SyncResult[]> {
   const results: SyncResult[] = [];
@@ -55,12 +56,18 @@ export async function syncPlayersForActiveSeasons(): Promise<SyncResult[]> {
           if (existing) {
             await prisma.player.update({
               where: { id: existing.id },
-              data: { dateOfBirth, position: squadPlayer.position, currentTeamId: teamId },
+              data: {
+                dateOfBirth,
+                position: squadPlayer.position,
+                currentTeamId: teamId,
+                normalizedName: normalizeName(squadPlayer.name),
+              },
             });
           } else {
             const created = await prisma.player.create({
               data: {
                 name: squadPlayer.name,
+                normalizedName: normalizeName(squadPlayer.name),
                 dateOfBirth,
                 position: squadPlayer.position,
                 currentTeamId: teamId,

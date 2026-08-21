@@ -1,6 +1,6 @@
-// Shared by the player search route (U23 filtering for Emerging Player) and
-// the predict page (server-side popular-U23-picks list) so the "under 23"
-// definition can't drift between the two call sites.
+// Shared by the player search route (U23 filtering for Young Player of the
+// Season) and the predict page (server-side popular-U23-picks list) so the
+// "under 23" definition can't drift between the two call sites.
 export function getAge(dateOfBirth: Date, at: Date = new Date()): number {
   let age = at.getFullYear() - dateOfBirth.getFullYear();
   const hasHadBirthdayThisYear =

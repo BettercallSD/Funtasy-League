@@ -12,12 +12,12 @@ const PLAYER_AWARDS = [
   { category: AwardCategory.MOST_ASSISTS, label: "Most Assists", field: "mostAssistsPlayerId" },
   {
     category: AwardCategory.YOUNG_PLAYER,
-    label: "Young Player of the Season",
+    label: "Young Player of the Season (U23)",
     field: "youngPlayerPlayerId",
   },
   {
     category: AwardCategory.EMERGING_PLAYER,
-    label: "Emerging Player (U23)",
+    label: "Player of the Season",
     field: "emergingPlayerPlayerId",
   },
 ] as const;

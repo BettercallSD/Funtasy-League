@@ -65,7 +65,7 @@ template software.
   "top-bracket" N used in scoring below.
 - `Team`, `SeasonTeam` (which teams are in which league that season, promoted/relegated flags)
 - `Player` — for the award-category search/autocomplete, includes dateOfBirth (needed for the
-  under-23 Emerging Player category) and current team
+  under-23 Young Player of the Season category) and current team
 - `User` — googleId, email, name, image, isAdmin
 - `Prediction` — userId (nullable for guests), seasonId, guestToken (nullable), isGuest, lockedAt,
   claimed
@@ -87,8 +87,8 @@ template software.
 | Relegated team (any order, counts direct + playoff relegation slots)                                 | 15 each  |
 | Golden Boot (top scorer)                                                                             | 20       |
 | Most assists                                                                                         | 20       |
-| Young Player of the Season                                                                           | 15       |
-| Emerging Player (U23)                                                                                | 15       |
+| Young Player of the Season (U23)                                                                     | 15       |
+| Player of the Season                                                                                 | 15       |
 | Surprise Team                                                                                        | 10       |
 | Disappointing Team                                                                                   | 10       |
 
@@ -97,17 +97,24 @@ If still tied, they're shown tied — no further tiebreak.
 
 ## How award categories get resolved at season end
 
-- **Golden Boot, Most Assists, Young Player of the Season** — commissioner (admin) manually enters
-  the winner. (Optional future enhancement: for Premier League specifically, the real PFA Young
-  Player of the Season award could be pulled in as ground truth instead of an admin call — not
-  required for v1.)
+- **Golden Boot, Most Assists, Young Player of the Season, Player of the Season** — commissioner
+  (admin) manually enters the winner. (Optional future enhancement: for Premier League specifically,
+  the real PFA awards — Young Player of the Season, Player of the Season — could be pulled in as
+  ground truth instead of an admin call — not required for v1.)
 - **Surprise Team / Disappointing Team** — calculated automatically: take the average predicted
   finishing position for each team across all _locked, non-guest_ predictions for that season, and
   compare it to the actual final position. The team that most outperformed the community's average
   expectation is Surprise Team; the team that most underperformed it is Disappointing Team. Show
   the math on the result page ("Community expected 8th, finished 3rd"). Give the admin a manual
   override for edge cases.
-- **Emerging Player (U23)** — commissioner manual call, filtered to players under 23 at the time.
+- **Young Player of the Season** is restricted to players under 23 at the time — the search/
+  autocomplete only surfaces eligible players, and submission is rejected server-side if the picked
+  player turns out not to qualify. **Player of the Season** is the same commissioner-manual-pick
+  mechanic with no age restriction (any player, any age) — it mirrors the real, official end-of-
+  season league award, so the commissioner enters whoever that turns out to be. (This category used
+  to be an age-restricted "Emerging Player", then an ungrounded "Surprise Player" with no real-world
+  award to check it against — landed here since an official Player of the Season award actually
+  exists to reference.)
 
 ## Prediction locking
 

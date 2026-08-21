@@ -37,6 +37,16 @@ export function TopNav({ session }: { session: Session | null }) {
               </Link>
             );
           })}
+          <Link
+            href="/friend-leagues"
+            className={`font-display border-b-2 px-3 py-4 text-sm font-semibold tracking-wide whitespace-nowrap transition-colors ${
+              pathname.startsWith("/friend-leagues")
+                ? "border-bk-text text-bk-text"
+                : "text-bk-text-secondary hover:text-bk-text border-transparent"
+            }`}
+          >
+            Friend Leagues
+          </Link>
         </nav>
         <AccountMenu session={session} />
       </div>

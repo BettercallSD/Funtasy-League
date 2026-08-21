@@ -93,6 +93,19 @@ export async function fetchSquads(leagueSlug: LeagueSlug): Promise<TeamSquad[]> 
   }));
 }
 
+export interface TeamCrest {
+  teamExternalName: string;
+  crestUrl: string | null;
+}
+
+export async function fetchTeamCrests(leagueSlug: LeagueSlug): Promise<TeamCrest[]> {
+  const code = COMPETITION_CODES[leagueSlug];
+  const data = (await footballDataFetch(`/competitions/${code}/teams`)) as {
+    teams: { name: string; crest: string | null }[];
+  };
+  return data.teams.map((team) => ({ teamExternalName: team.name, crestUrl: team.crest ?? null }));
+}
+
 export function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

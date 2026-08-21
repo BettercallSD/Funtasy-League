@@ -71,8 +71,8 @@ export async function setAward(seasonId: string, category: AwardCategory, valueI
       throw new Error("That player isn't in this season's league.");
     }
 
-    if (values.category === AwardCategory.EMERGING_PLAYER && getAge(player.dateOfBirth) >= 23) {
-      throw new Error("Emerging Player must be under 23.");
+    if (values.category === AwardCategory.YOUNG_PLAYER && getAge(player.dateOfBirth) >= 23) {
+      throw new Error("Young Player of the Season must be under 23.");
     }
     data = { playerId: player.id, teamId: null };
   } else if (TEAM_CATEGORIES.has(values.category)) {

@@ -48,6 +48,7 @@ export function AwardPicks({
         seasonId={seasonId}
         category={AwardCategory.GOLDEN_BOOT}
         label="Golden Boot"
+        teams={teams}
         popularPlayers={popular.goldenBoot}
         selected={selections.goldenBoot ?? null}
         disabled={disabled}
@@ -57,6 +58,7 @@ export function AwardPicks({
         seasonId={seasonId}
         category={AwardCategory.MOST_ASSISTS}
         label="Most Assists"
+        teams={teams}
         popularPlayers={popular.mostAssists}
         selected={selections.mostAssists ?? null}
         disabled={disabled}
@@ -65,7 +67,9 @@ export function AwardPicks({
       <PlayerPicker
         seasonId={seasonId}
         category={AwardCategory.YOUNG_PLAYER}
-        label="Young Player of the Season"
+        label="Young Player of the Season (U23)"
+        u23Only
+        teams={teams}
         popularPlayers={popular.youngPlayer}
         selected={selections.youngPlayer ?? null}
         disabled={disabled}
@@ -74,8 +78,8 @@ export function AwardPicks({
       <PlayerPicker
         seasonId={seasonId}
         category={AwardCategory.EMERGING_PLAYER}
-        label="Emerging Player (U23)"
-        u23Only
+        label="Player of the Season"
+        teams={teams}
         popularPlayers={popular.emergingPlayer}
         selected={selections.emergingPlayer ?? null}
         disabled={disabled}

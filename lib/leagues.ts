@@ -54,6 +54,47 @@ export const LEAGUES: LeagueConfig[] = [
 
 export const DEFAULT_LEAGUE_SLUG: LeagueSlug = "premier-league";
 
+// Suggested starting values for the "new season" admin form, pre-filling
+// the real current qualification/relegation format so admins don't have to
+// re-derive it each time a season is created — still fully editable per
+// CLAUDE.md, since these genuinely change year to year. Only leagues whose
+// current real-world format is confirmed are listed here; the rest start
+// blank rather than guess.
+export interface SeasonDefaults {
+  teamCount: number;
+  directRelegationCount: number;
+  playoffRelegationCount: number;
+  championsLeagueSlots: number;
+  europaLeagueSlots: number;
+  conferenceLeagueSlots: number;
+}
+
+export const SEASON_DEFAULTS: Partial<Record<LeagueSlug, SeasonDefaults>> = {
+  // Top 4 straight to Champions League, 5th Europa League, 6th Conference
+  // League. 16th goes to the relegation playoff, 17th/18th relegate direct.
+  bundesliga: {
+    teamCount: 18,
+    directRelegationCount: 2,
+    playoffRelegationCount: 1,
+    championsLeagueSlots: 4,
+    europaLeagueSlots: 1,
+    conferenceLeagueSlots: 1,
+  },
+  // Top 3 straight to Champions League, 4th to CL qualifying (counted
+  // together as this app's single championsLeagueSlots figure — see
+  // CLAUDE.md's "top-bracket" scoring model), 5th Europa League, 6th to
+  // Conference League qualifying. 16th goes to the relegation playoff,
+  // 17th/18th relegate direct.
+  "ligue-1": {
+    teamCount: 18,
+    directRelegationCount: 2,
+    playoffRelegationCount: 1,
+    championsLeagueSlots: 4,
+    europaLeagueSlots: 1,
+    conferenceLeagueSlots: 1,
+  },
+};
+
 export function getLeague(slug: string): LeagueConfig | undefined {
   return LEAGUES.find((league) => league.slug === slug);
 }

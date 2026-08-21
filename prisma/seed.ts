@@ -5,6 +5,7 @@
 // the admin section assumes these rows already exist. Safe to re-run.
 import { prisma } from "../lib/prisma";
 import { LEAGUES } from "../lib/leagues";
+import { normalizeName } from "../lib/normalize-name";
 
 // teamName links the player to an existing Team row by exact name (case
 // insensitive) so league-scoped search has something real to find — left
@@ -108,6 +109,7 @@ async function main() {
       player = await prisma.player.create({
         data: {
           name: fixture.name,
+          normalizedName: normalizeName(fixture.name),
           dateOfBirth: new Date(fixture.dateOfBirth),
           position: fixture.position,
         },

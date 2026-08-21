@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/require-user";
 import { prisma } from "@/lib/prisma";
+import { JoinByCodeForm } from "@/components/join-by-code-form";
 
 export default async function FriendLeaguesPage() {
   const session = await requireUser("/friend-leagues");
@@ -21,6 +22,10 @@ export default async function FriendLeaguesPage() {
         >
           + Create
         </Link>
+      </div>
+
+      <div className="mt-6">
+        <JoinByCodeForm />
       </div>
 
       {memberships.length === 0 ? (
