@@ -66,7 +66,9 @@ template software.
 - `Team`, `SeasonTeam` (which teams are in which league that season, promoted/relegated flags)
 - `Player` — for the award-category search/autocomplete, includes dateOfBirth (needed for the
   under-23 Young Player of the Season category) and current team
-- `User` — googleId, email, name, image, isAdmin
+- `User` — googleId, email, name (from Google), image, isAdmin, username (optional, unique,
+  user-chosen — takes precedence over `name` everywhere a user's identity is shown, since some
+  people don't want to predict under their real name)
 - `Prediction` — userId (nullable for guests), seasonId, guestToken (nullable), isGuest, lockedAt,
   claimed
 - `PredictionTableEntry` — predictionId, teamId, predictedPosition (the dragged order)

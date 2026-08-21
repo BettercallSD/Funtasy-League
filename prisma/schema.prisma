@@ -147,6 +147,12 @@ model User {
   googleId String  @unique
   email    String  @unique
   name     String?
+  // Optional user-chosen display name, shown everywhere in place of `name`
+  // (their Google account name) once set — some people don't want to
+  // predict under their real name. Nullable + unique: Postgres allows any
+  // number of NULLs under a unique constraint, so users who never set one
+  // don't collide with each other, but no two chosen usernames can match.
+  username String? @unique
   image    String?
   isAdmin  Boolean @default(false)
 

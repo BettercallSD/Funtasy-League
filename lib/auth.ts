@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { getDisplayName } from "@/lib/display-name";
 
 // Google's OIDC profile shape, validated before it ever touches the database.
 const googleProfileSchema = z.object({
@@ -45,7 +46,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
           if (dbUser) {
             token.userId = dbUser.id;
-            token.isAdmin = dbUser.isAdmin;
           }
         }
       }
@@ -54,7 +54,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user && token.userId) {
         session.user.id = token.userId;
-        session.user.isAdmin = Boolean(token.isAdmin);
+        // Re-read from the DB on every session check (not just at sign-in)
+        // so a username set after login — or an admin flag revoked — takes
+        // effect immediately instead of waiting for the next Google sign-in.
+        const dbUser = await prisma.user.findUnique({ where: { id: token.userId } });
+        if (dbUser) {
+          session.user.name = getDisplayName(dbUser);
+          session.user.isAdmin = dbUser.isAdmin;
+        }
       }
       return session;
     },

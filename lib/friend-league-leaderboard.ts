@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getDisplayName } from "@/lib/display-name";
 
 export interface FriendLeagueSeasonScore {
   seasonId: string;
@@ -81,7 +82,7 @@ export async function getFriendLeagueScores(
 
     return {
       userId: member.userId,
-      userName: member.user.name ?? "Anonymous",
+      userName: getDisplayName(member.user),
       totalScore,
       totalExactBonusCount,
       perSeason,

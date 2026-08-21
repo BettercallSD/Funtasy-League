@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 import { formatSeasonYear } from "@/lib/format-season";
 import { computeRanks } from "@/lib/rank-predictions";
+import { getDisplayName } from "@/lib/display-name";
 
 export default async function LivePredictionLeaguePage({
   params,
@@ -54,7 +55,7 @@ export default async function LivePredictionLeaguePage({
   const ranked = computeRanks(
     predictions.map((prediction) => ({
       id: prediction.id,
-      userName: prediction.user?.name ?? "Anonymous",
+      userName: prediction.user ? getDisplayName(prediction.user) : "Anonymous",
       score: prediction.projectedScore ?? 0,
       exactBonusCount: prediction.projectedExactBonusCount ?? 0,
     })),

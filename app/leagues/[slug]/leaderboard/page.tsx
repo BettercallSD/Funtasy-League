@@ -6,6 +6,7 @@ import { getLeague, LEAGUE_ACCENT_CLASSES } from "@/lib/leagues";
 import { formatSeasonYear } from "@/lib/format-season";
 import { computeRanks } from "@/lib/rank-predictions";
 import { getMedalEmoji } from "@/lib/medals";
+import { getDisplayName } from "@/lib/display-name";
 
 export default async function LeaderboardPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -55,7 +56,7 @@ export default async function LeaderboardPage({ params }: { params: Promise<{ sl
     predictions.map((prediction) => ({
       id: prediction.id,
       userId: prediction.userId,
-      userName: prediction.user?.name ?? "Anonymous",
+      userName: prediction.user ? getDisplayName(prediction.user) : "Anonymous",
       score: prediction.finalScore ?? 0,
       exactBonusCount: prediction.finalExactBonusCount ?? 0,
     })),

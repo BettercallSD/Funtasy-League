@@ -7,6 +7,7 @@ import { formatSeasonYear } from "@/lib/format-season";
 import { getFriendLeagueScores } from "@/lib/friend-league-leaderboard";
 import { computeRanks } from "@/lib/rank-predictions";
 import { getMedalEmoji } from "@/lib/medals";
+import { getDisplayName } from "@/lib/display-name";
 import { removeMember } from "@/lib/actions/friend-league-actions";
 
 export default async function FriendLeagueDetailPage({
@@ -112,7 +113,7 @@ export default async function FriendLeagueDetailPage({
           {friendLeague.members.map((member) => (
             <li key={member.id} className="flex items-center justify-between p-3 text-sm">
               <span>
-                {member.user.name}
+                {getDisplayName(member.user)}
                 {member.userId === friendLeague.creatorId && (
                   <span className="text-bk-text-secondary ml-2 text-xs">Creator</span>
                 )}

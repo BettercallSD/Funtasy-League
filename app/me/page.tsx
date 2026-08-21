@@ -3,11 +3,12 @@ import { requireUser } from "@/lib/require-user";
 import { prisma } from "@/lib/prisma";
 import { formatSeasonYear } from "@/lib/format-season";
 import { computeAccuracy, parseScoreBreakdown } from "@/lib/prediction-accuracy";
+import { UsernameForm } from "@/components/username-form";
 
 export default async function MyPredictionsPage() {
   const session = await requireUser("/me");
 
-  const [predictions, claimedGuestPrediction] = await Promise.all([
+  const [predictions, claimedGuestPrediction, currentUser] = await Promise.all([
     prisma.prediction.findMany({
       where: { userId: session.user.id, isGuest: false },
       include: { season: { include: { league: true } } },
@@ -17,11 +18,36 @@ export default async function MyPredictionsPage() {
       where: { claimedByUserId: session.user.id },
       include: { season: { include: { league: true } } },
     }),
+    prisma.user.findUnique({ where: { id: session.user.id } }),
   ]);
+
+  const now = new Date();
+  const usernameLocked = predictions.some(
+    (prediction) =>
+      prediction.season.status !== "FINALIZED" && prediction.season.predictionLockAt <= now,
+  );
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-12">
       <h1 className="font-display text-2xl font-bold">My predictions</h1>
+
+      <section className="border-bk-border bg-bk-surface mt-6 rounded-lg border p-4">
+        <p className="text-bk-text-secondary text-xs font-semibold tracking-wide uppercase">
+          Username
+        </p>
+        <p className="text-bk-text-secondary mt-1 text-sm">
+          Shown everywhere instead of your Google account name — leaderboards, friend leagues,
+          recaps.
+        </p>
+        {usernameLocked ? (
+          <p className="text-bk-text-secondary mt-2 text-sm italic">
+            You can&apos;t change this while a season you&apos;ve entered is in progress —
+            you&apos;ll be able to again once it&apos;s finalized.
+          </p>
+        ) : (
+          <UsernameForm currentUsername={currentUser?.username ?? null} />
+        )}
+      </section>
 
       {predictions.length === 0 ? (
         <p className="text-bk-text-secondary mt-6">You haven&apos;t made any predictions yet.</p>
